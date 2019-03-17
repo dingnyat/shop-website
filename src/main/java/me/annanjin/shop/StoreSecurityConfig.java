@@ -1,5 +1,6 @@
 package me.annanjin.shop;
 
+import me.annanjin.shop.security.CustomPersistentTokenBasedRememberMeServices;
 import me.annanjin.shop.security.UrlAuthenSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -12,11 +13,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
-
-import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
@@ -49,21 +47,13 @@ public class StoreSecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin()
                 .loginPage("/login").loginProcessingUrl("/login").failureUrl("/login?error=1").successHandler(urlAuthenSuccessHandler)
                 .usernameParameter("username").passwordParameter("password")
-                .and().rememberMe().rememberMeParameter("remember-me").tokenRepository(tokenRepository).tokenValiditySeconds(604800)
+                .and().rememberMe().key("remember-me").rememberMeServices(this.persistentTokenBasedRememberMeServices()).tokenValiditySeconds(604800)
                 .and().logout().logoutUrl("/logout").logoutSuccessUrl("/login");
-    }
-
-    @Bean(name = "JdbcRepository")
-    @Autowired
-    public PersistentTokenRepository persistentTokenRepository(DataSource dataSource) {
-        JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
-        tokenRepository.setDataSource(dataSource);
-        return tokenRepository;
     }
 
     @Bean
     PersistentTokenBasedRememberMeServices persistentTokenBasedRememberMeServices() {
-        return new PersistentTokenBasedRememberMeServices("remember-me", userDetailsService, tokenRepository);
+        return new CustomPersistentTokenBasedRememberMeServices("remember-me", userDetailsService, tokenRepository);
     }
 
     @Bean

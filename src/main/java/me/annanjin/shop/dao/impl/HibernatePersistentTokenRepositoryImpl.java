@@ -12,7 +12,7 @@ import java.util.Date;
 
 @Repository(value = "HibernateRepository")
 @Transactional
-public class HibernateTokenRepositoryImpl implements PersistentTokenRepository {
+public class HibernatePersistentTokenRepositoryImpl implements PersistentTokenRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -28,8 +28,8 @@ public class HibernateTokenRepositoryImpl implements PersistentTokenRepository {
     }
 
     @Override
-    public PersistentRememberMeToken getTokenForSeries(String seriesId) {
-        PersistentLogin persistentLogin = entityManager.find(PersistentLogin.class, seriesId);
+    public PersistentRememberMeToken getTokenForSeries(String series) {
+        PersistentLogin persistentLogin = entityManager.find(PersistentLogin.class, series);
         if (persistentLogin == null) return null;
         System.out.println(persistentLogin.getUsername());
         return new PersistentRememberMeToken(persistentLogin.getUsername(),
@@ -37,20 +37,17 @@ public class HibernateTokenRepositoryImpl implements PersistentTokenRepository {
     }
 
     @Override
-    public void updateToken(String seriesId, String tokenValue, Date last_used) {
-        PersistentLogin persistentLogin = entityManager.find(PersistentLogin.class, seriesId);
-        persistentLogin.setToken(tokenValue);
-        persistentLogin.setLast_used(last_used);
+    public void updateToken(String series, String token, Date lastDate) {
+        PersistentLogin persistentLogin = entityManager.find(PersistentLogin.class, series);
+        persistentLogin.setToken(token);
+        persistentLogin.setLast_used(lastDate);
         entityManager.merge(persistentLogin);
     }
 
     @Override
-    public void removeUserTokens(String username) {
-        PersistentLogin persistentLogin = entityManager
-                .createQuery("SELECT p FROM PersistentLogin p WHERE p.username = :username", PersistentLogin.class)
-                .setParameter("username", username).getSingleResult();
-        if (persistentLogin != null) {
-            entityManager.remove(persistentLogin);
-        }
+    public void removeUserTokens(String series) {
+        PersistentLogin persistentLogin = entityManager.find(PersistentLogin.class, series);
+        if (persistentLogin == null) return;
+        entityManager.remove(persistentLogin);
     }
 }
