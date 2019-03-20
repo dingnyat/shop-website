@@ -1,10 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Add Product</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
 </head>
 <body>
-
+<form th:action="@{/product/add}" class="form-horizontal" method="post" th:object="${product}">
+    <hr>
+    <h3>Add product</h3>
+    <hr>
+    <div class="form-group">
+        <label class="control-label col-sm-2">Name:</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="name"
+                   placeholder="Enter name" th:field="*{name}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-sm-2">Quantity:</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="quantity"
+                   placeholder="Enter quantity" th:field="*{quantity}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-sm-2">Price:</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="Price"
+                   placeholder="Enter Price" th:field="*{price}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-sm-2">Description:</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="description"
+                   placeholder="Enter Description" th:field="*{description}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-sm-2">ProductFileName:</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="productFileName"
+                   placeholder="Enter productFileName" th:field="*{productFileName}">
+        </div>
+    </div>
+    <hr>
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn btn-default">Submit</button>
+        </div>
+    </div>
+</form>
 </body>
 </html>

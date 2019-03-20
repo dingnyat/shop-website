@@ -50,6 +50,19 @@ create table if not exists persistent_login
   primary key (series)
 );
 
+create table if not exists product
+(
+  id                int auto_increment
+    primary key,
+  name              varchar(100) charset utf8 not null,
+  quantity          int                       not null,
+  price             double                    not null,
+  description       varchar(100) charset utf8 null,
+  product_file_name varchar(100) charset utf8 not null,
+  constraint product_name_uindex
+    unique (name)
+);
+
 create table if not exists role
 (
   id        int auto_increment

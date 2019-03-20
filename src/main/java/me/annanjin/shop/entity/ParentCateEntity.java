@@ -10,6 +10,7 @@ public class ParentCateEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+
     @Column(name = "parent_id", nullable = false)
     private int parentId;
 
@@ -19,32 +20,4 @@ public class ParentCateEntity {
     public ParentCateEntity() {
     }
 
-    public ParentCateEntity(int parentId, int childId) {
-        this.parentId = parentId;
-        this.childId = childId;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(int parentId) {
-        this.parentId = parentId;
-    }
-
-    public int getChildId() {
-        return childId;
-    }
-
-    public void setChildId(int childId) {
-        this.childId = childId;
-    }
 }
