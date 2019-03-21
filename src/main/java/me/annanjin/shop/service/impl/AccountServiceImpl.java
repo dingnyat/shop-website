@@ -4,13 +4,14 @@ import me.annanjin.shop.dao.AccountDAO;
 import me.annanjin.shop.entity.AccountEntity;
 import me.annanjin.shop.model.Account;
 import me.annanjin.shop.service.AccountService;
+import me.annanjin.shop.utils.BeanTools;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -22,51 +23,34 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private BeanTools beanTools;
+
     @Override
-    public int add(Account account) {
-        AccountEntity accountEntity = new AccountEntity();
-        accountEntity.setUsername(account.getUsername());
+    public Integer add(Account account) {
+        AccountEntity accountEntity = beanTools.convert(account, new AccountEntity());
         accountEntity.setPassword(passwordEncoder.encode(account.getPassword()));
-        accountEntity.setName(account.getName());
-        accountEntity.setAddress(account.getAddress());
-        accountEntity.setPhone(account.getPhone());
-        accountEntity.setEmail(account.getEmail());
-        accountEntity.setAvatarURL(account.getAvatarURL());
         return accountDAO.add(accountEntity);
     }
 
     @Override
-    public Account getByUsername(String username) {
-        AccountEntity accountEntity = accountDAO.getByUsername(username);
-        if (accountEntity == null) return null;
-        Account account = new Account();
-        account.setId(accountEntity.getId());
-        account.setUsername(accountEntity.getUsername());
-        account.setPassword(accountEntity.getPassword());
-        account.setName(accountEntity.getName());
-        account.setAddress(accountEntity.getAddress());
-        account.setPhone(accountEntity.getPhone());
-        account.setEmail(accountEntity.getEmail());
-        account.setAvatarURL(accountEntity.getAvatarURL());
-        return account;
-    }
-
-    @Override
-    public void edit(Account account) {
+    public void update(Account account) {
         AccountEntity accountEntity = accountDAO.getByUsername(account.getUsername());
-        accountEntity.setUsername(account.getUsername());
+        beanTools.convert(account, accountEntity);
         accountEntity.setPassword(passwordEncoder.encode(account.getPassword()));
-        accountEntity.setName(account.getName());
-        accountEntity.setAddress(account.getAddress());
-        accountEntity.setPhone(account.getPhone());
-        accountEntity.setEmail(account.getEmail());
-        accountEntity.setAvatarURL(account.getAvatarURL());
         accountDAO.update(accountEntity);
     }
 
     @Override
-    public void delete(int id) {
+    public void remove(Integer id) {
         accountDAO.remove(accountDAO.getById(id));
+    }
+
+    @Override
+    public Account getById(Integer id) {
+        AccountEntity accountEntity = accountDAO.getById(id);
+        if (accountEntity == null) return null;
+        return beanTools.convert(accountEntity, new Account());
     }
 
     @Override
@@ -75,73 +59,25 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Account getById(int id) {
-        AccountEntity accountEntity = accountDAO.getById(id);
+    public Account getByUsername(String username) {
+        AccountEntity accountEntity = accountDAO.getByUsername(username);
         if (accountEntity == null) return null;
-        Account account = new Account();
-        account.setId(accountEntity.getId());
-        account.setUsername(accountEntity.getUsername());
-        account.setPassword(accountEntity.getPassword());
-        account.setName(accountEntity.getName());
-        account.setAddress(accountEntity.getAddress());
-        account.setPhone(accountEntity.getPhone());
-        account.setEmail(accountEntity.getEmail());
-        account.setAvatarURL(accountEntity.getAvatarURL());
-        return account;
+        return beanTools.convert(accountEntity, new Account());
     }
 
     @Override
     public List<Account> searchByName(String name) {
         List<AccountEntity> accountEntities = accountDAO.searchByName(name);
-        List<Account> accountList = new ArrayList<Account>();
-        for (AccountEntity accountEntity : accountEntities) {
-            Account account = new Account();
-            account.setId(accountEntity.getId());
-            account.setUsername(accountEntity.getUsername());
-            account.setPassword(accountEntity.getPassword());
-            account.setName(accountEntity.getName());
-            account.setAddress(accountEntity.getAddress());
-            account.setPhone(accountEntity.getPhone());
-            account.setEmail(accountEntity.getEmail());
-            account.setAvatarURL(accountEntity.getAvatarURL());
-            accountList.add(account);
-        }
-        return accountList;
+        return accountEntities.stream()
+                .map(accountEntity -> beanTools.convert(accountEntity, new Account()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<Account> getAll() {
         List<AccountEntity> accountEntities = accountDAO.getAll();
-        List<Account> accountList = new ArrayList<Account>();
-        for (AccountEntity accountEntity : accountEntities) {
-            Account account = new Account();
-            account.setId(accountEntity.getId());
-            account.setUsername(accountEntity.getUsername());
-            account.setPassword(accountEntity.getPassword());
-            account.setName(accountEntity.getName());
-            account.setAddress(accountEntity.getAddress());
-            account.setPhone(accountEntity.getPhone());
-            account.setEmail(accountEntity.getEmail());
-            account.setAvatarURL(accountEntity.getAvatarURL());
-            accountList.add(account);
-        }
-        return accountList;
-    }
-
-    @Override
-    public Account login(Account account) {
-        AccountEntity accountEntity = accountDAO.getByUsername(account.getUsername());
-        if (accountEntity != null && account.getPassword().equals(accountEntity.getPassword())) {
-            account.setId(accountEntity.getId());
-            account.setUsername(accountEntity.getUsername());
-            account.setPassword(accountEntity.getPassword());
-            account.setName(accountEntity.getName());
-            account.setAddress(accountEntity.getAddress());
-            account.setPhone(accountEntity.getPhone());
-            account.setEmail(accountEntity.getEmail());
-            account.setAvatarURL(accountEntity.getAvatarURL());
-            return account;
-        }
-        return null;
+        return accountEntities.stream()
+                .map(accountEntity -> beanTools.convert(accountEntity, new Account()))
+                .collect(Collectors.toList());
     }
 }

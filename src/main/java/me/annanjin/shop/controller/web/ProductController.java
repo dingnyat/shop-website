@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Controller
+@RequestMapping("/admin")
 public class ProductController {
     @Autowired
     private ProductService productService;
@@ -27,24 +28,26 @@ public class ProductController {
     }
 
     @GetMapping("/product/{id}/edit")
-    public String editProduct(@PathVariable("id") int id, Model model){
+    public String editProduct(@PathVariable("id") int id, Model model) {
         Product product = productService.getById(id);
-        model.addAttribute("productEdit",product);
+        model.addAttribute("productEdit", product);
         return "admin/product/editProduct";
     }
+
     @PostMapping("/product/{id}/edit")
-    public String editProduct(@ModelAttribute("productEdit") Product product){
-        productService.edit(product);
+    public String editProduct(@ModelAttribute("productEdit") Product product) {
+        productService.update(product);
         return "redirect:/product/list";
     }
 
 
     @GetMapping("/product/{id}/delete")
-    public String deleteProduct(@PathVariable("id") int id, Product product){
+    public String deleteProduct(@PathVariable("id") int id, Product product) {
         product = productService.getById(id);
-        productService.delete(product);
+        productService.remove(product.getId());
         return "redirect:/product/list";
     }
+
     @GetMapping("/product/list")
     public String listProduct(Model model) {
         List<Product> listProducts = productService.getAll();

@@ -4,93 +4,63 @@ import me.annanjin.shop.dao.ProductDAO;
 import me.annanjin.shop.entity.ProductEntity;
 import me.annanjin.shop.model.Product;
 import me.annanjin.shop.service.ProductService;
+import me.annanjin.shop.utils.BeanTools;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 
 public class ProductServiceImpl implements ProductService {
+
     @Autowired
     private ProductDAO productDAO;
 
+    @Autowired
+    private BeanTools beanTools;
+
     @Override
-    public int add(Product product) {
-        ProductEntity productEntity = new ProductEntity();
-        productEntity.setName(product.getName());
-        productEntity.setQuantity(product.getQuantity());
-        productEntity.setPrice(product.getPrice());
-        productEntity.setDescription(product.getDescription());
-        productEntity.setProductFileName(product.getProductFileName());
-        return productDAO.add(productEntity);
+    public Integer add(Product product) {
+        return productDAO.add(beanTools.convert(product, new ProductEntity()));
     }
 
     @Override
-    public void edit(Product product) {
+    public void update(Product product) {
         ProductEntity productEntity = productDAO.getById(product.getId());
-        productEntity.setName(product.getName());
-        productEntity.setQuantity(product.getQuantity());
-        productEntity.setPrice(product.getPrice());
-        productEntity.setDescription(product.getDescription());
-        productEntity.setProductFileName(product.getProductFileName());
+        beanTools.convert(product, productEntity);
         productDAO.update(productEntity);
     }
 
     @Override
-    public void delete(Product product) {
-        ProductEntity productEntity = productDAO.getById(product.getId());
+    public void remove(Integer id) {
+        ProductEntity productEntity = productDAO.getById(id);
         productDAO.remove(productEntity);
     }
 
     @Override
-    public Product getById(int id) {
+    public Product getById(Integer id) {
         ProductEntity productEntity = productDAO.getById(id);
-        Product product = new Product();
-        product.setId(productEntity.getId());
-        product.setName(productEntity.getName());
-        product.setQuantity(productEntity.getQuantity());
-        product.setPrice(productEntity.getPrice());
-        product.setDescription(productEntity.getDescription());
-        product.setProductFileName(productEntity.getProductFileName());
-        return product;
+        return beanTools.convert(productEntity, new Product());
     }
 
     @Override
     public List<Product> getByName(String name) {
         List<ProductEntity> productEntities = productDAO.getByName(name);
-        List<Product> listProduct = new ArrayList<Product>();
-        for(ProductEntity productEntity : productEntities){
-            Product product = new Product();
-            product.setId(productEntity.getId());
-            product.setName(productEntity.getName());
-            product.setQuantity(productEntity.getQuantity());
-            product.setPrice(productEntity.getPrice());
-            product.setDescription(productEntity.getDescription());
-            product.setProductFileName(productEntity.getProductFileName());
-            listProduct.add(product);
-        }
-        return listProduct;
+        return productEntities.stream()
+                .map(productEntity -> beanTools.convert(productEntity, new Product()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<Product> getAll() {
         List<ProductEntity> productEntities = productDAO.getAll();
-        List<Product> listProduct = new ArrayList<Product>();
-        for (ProductEntity productEntity : productEntities) {
-            Product product = new Product();
-            product.setId(productEntity.getId());
-            product.setName(productEntity.getName());
-            product.setQuantity(productEntity.getQuantity());
-            product.setPrice(productEntity.getPrice());
-            product.setDescription(productEntity.getDescription());
-            product.setProductFileName(productEntity.getProductFileName());
-            listProduct.add(product);
-        }
-        return listProduct;
+        return productEntities.stream()
+                .map(productEntity -> beanTools.convert(productEntity, new Product()))
+                .collect(Collectors.toList());
     }
 }
 

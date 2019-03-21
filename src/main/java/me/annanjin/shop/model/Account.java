@@ -12,14 +12,14 @@ public class Account {
     private String address;
     private String phone;
     private String email;
-    private String avatarURL;
+    private String avatarUrl;
     @Expose(serialize = false)
     private MultipartFile multipartFile;
 
     public Account() {
     }
 
-    public Account(int id, String username, String password, String name, String address, String phone, String email, String avatarURL, MultipartFile multipartFile) {
+    public Account(int id, String username, String password, String name, String address, String phone, String email, String avatarUrl, MultipartFile multipartFile) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -27,44 +27,7 @@ public class Account {
         this.address = address;
         this.phone = phone;
         this.email = email;
-        this.avatarURL = avatarURL;
-        this.multipartFile = multipartFile;
-    }
-
-    public Account(String username, String password, String name, String address, String phone, String email, String avatarURL, MultipartFile multipartFile) {
-        this.username = username;
-        this.password = password;
-        this.name = name;
-        this.address = address;
-        this.phone = phone;
-        this.email = email;
-        this.avatarURL = avatarURL;
-        this.multipartFile = multipartFile;
-    }
-
-    public Account(String username, String password, String name, String address, String phone, String email, String avatarURL) {
-        this.username = username;
-        this.password = password;
-        this.name = name;
-        this.address = address;
-        this.phone = phone;
-        this.email = email;
-        this.avatarURL = avatarURL;
-    }
-
-    public String getAvatarURL() {
-        return avatarURL;
-    }
-
-    public void setAvatarURL(String avatarURL) {
-        this.avatarURL = avatarURL;
-    }
-
-    public MultipartFile getMultipartFile() {
-        return multipartFile;
-    }
-
-    public void setMultipartFile(MultipartFile multipartFile) {
+        this.avatarUrl = avatarUrl;
         this.multipartFile = multipartFile;
     }
 
@@ -122,5 +85,21 @@ public class Account {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public MultipartFile getMultipartFile() {
+        return multipartFile;
+    }
+
+    public void setMultipartFile(MultipartFile multipartFile) {
+        this.multipartFile = multipartFile;
     }
 }

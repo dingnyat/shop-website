@@ -10,7 +10,7 @@ public class ProductEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 265)
     private String name;
 
     @Column(name = "quantity", nullable = false)
@@ -19,21 +19,21 @@ public class ProductEntity {
     @Column(name = "price", nullable = false)
     private double price;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", nullable = false, length = 2048)
     private String description;
 
-    @Column(name = "product_file_name", nullable = false)
-    private String productFileName;
+    @Column(name = "thumbnail_url", nullable = false, length = 1024)
+    private String thumbnailUrl;
 
     public ProductEntity() {
     }
 
-    public ProductEntity(String name, int quantity, double price, String description, String productFileName) {
+    public ProductEntity(String name, int quantity, double price, String description, String thumbnailUrl) {
         this.name = name;
         this.quantity = quantity;
         this.price = price;
         this.description = description;
-        this.productFileName = productFileName;
+        this.thumbnailUrl = thumbnailUrl;
 
     }
 
@@ -77,12 +77,11 @@ public class ProductEntity {
         this.description = description;
     }
 
-    public String getProductFileName() {
-        return productFileName;
+    public String getThumbnailUrl() {
+        return thumbnailUrl;
     }
 
-    public void setProductFileName(String productFileName) {
-        this.productFileName = productFileName;
+    public void setThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
     }
-
 }

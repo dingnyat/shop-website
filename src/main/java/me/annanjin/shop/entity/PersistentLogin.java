@@ -8,13 +8,13 @@ import java.util.Date;
 public class PersistentLogin {
 
     @Id
-    @Column(name = "series", nullable = false)
+    @Column(name = "series", nullable = false, length = 512)
     private String series;
 
-    @Column(name = "username", nullable = false)
+    @Column(name = "username", nullable = false, length = 128)
     private String username;
 
-    @Column(name = "token", nullable = false)
+    @Column(name = "token", nullable = false, length = 512)
     private String token;
 
     @Column(name = "last_used", nullable = false)

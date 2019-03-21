@@ -11,25 +11,25 @@ public class AccountEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "username", nullable = false, unique = true)
+    @Column(name = "username", nullable = false, unique = true, length = 128)
     private String username;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password", nullable = false, length = 512)
     private String password;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 128)
     private String name;
 
-    @Column(name = "address", nullable = false)
+    @Column(name = "address", nullable = false, length = 1024)
     private String address;
 
-    @Column(name = "phone", nullable = false, unique = true)
+    @Column(name = "phone", nullable = false, unique = true, length = 64)
     private String phone;
 
-    @Column(name = "email", unique = true)
+    @Column(name = "email", unique = true, length = 128)
     private String email;
 
-    @Column(name = "avatar_url")
+    @Column(name = "avatar_url", length = 1024)
     private String avatarURL;
 
     public AccountEntity() {

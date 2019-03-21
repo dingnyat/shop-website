@@ -6,19 +6,18 @@ public class Product {
     private int quantity;
     private double price;
     private String description;
-    private String productFileName;
+    private String thumbnailUrl;
 
     public Product() {
     }
 
-    public Product(int id, String name, int quantity, double price, String description, String productFileName) {
+    public Product(int id, String name, int quantity, double price, String description, String thumbnailUrl) {
         this.id = id;
         this.name = name;
         this.quantity = quantity;
         this.price = price;
         this.description = description;
-        this.productFileName = productFileName;
-
+        this.thumbnailUrl = thumbnailUrl;
     }
 
     public int getId() {
@@ -61,11 +60,11 @@ public class Product {
         this.description = description;
     }
 
-    public String getProductFileName() {
-        return productFileName;
+    public String getThumbnailUrl() {
+        return thumbnailUrl;
     }
 
-    public void setProductFileName(String productFileName) {
-        this.productFileName = productFileName;
+    public void setThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
     }
 }
