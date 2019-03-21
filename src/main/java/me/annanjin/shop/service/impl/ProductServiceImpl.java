@@ -60,24 +60,20 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product getByName(String name) {
-        try {
-            try {
-                ProductEntity productEntity = productDAO.getByName(name);
-                Product product = new Product();
-                product.setId(productEntity.getId());
-                product.setName(productEntity.getName());
-                product.setQuantity(productEntity.getQuantity());
-                product.setPrice(productEntity.getPrice());
-                product.setDescription(productEntity.getDescription());
-                product.setProductFileName(productEntity.getProductFileName());
-                return product;
-            } catch (Exception e) {
-                return null;
-            }
-        } catch (Exception e) {
-            return null;
+    public List<Product> getByName(String name) {
+        List<ProductEntity> productEntities = productDAO.getByName(name);
+        List<Product> listProduct = new ArrayList<Product>();
+        for(ProductEntity productEntity : productEntities){
+            Product product = new Product();
+            product.setId(productEntity.getId());
+            product.setName(productEntity.getName());
+            product.setQuantity(productEntity.getQuantity());
+            product.setPrice(productEntity.getPrice());
+            product.setDescription(productEntity.getDescription());
+            product.setProductFileName(productEntity.getProductFileName());
+            listProduct.add(product);
         }
+        return listProduct;
     }
 
     @Override

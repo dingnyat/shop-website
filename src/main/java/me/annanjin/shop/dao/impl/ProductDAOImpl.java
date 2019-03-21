@@ -15,10 +15,10 @@ import java.util.List;
 @Transactional
 public class ProductDAOImpl extends DAOAbstract<Integer,ProductEntity> implements ProductDAO{
     @Override
-    public ProductEntity getByName(String name) {
+    public List<ProductEntity> getByName(String name) {
         String hql = "select p from ProductEntity p where p.name = :name";
         Query query = entityManager.createQuery(hql);
         query.setParameter("name", name);
-        return (ProductEntity) query.getSingleResult();
+        return query.getResultList();
     }
 }

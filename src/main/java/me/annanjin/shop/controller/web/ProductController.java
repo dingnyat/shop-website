@@ -54,8 +54,8 @@ public class ProductController {
 
     @GetMapping("/product/searchByName")
     public String searchByName(@RequestParam(name = "name") String name, Model model) {
-        Product product = productService.getByName(name);
-        model.addAttribute("products", product);
+        List<Product> listProducts = productService.getByName(name);
+        model.addAttribute("products", listProducts);
         return "admin/product/listProduct";
     }
 }
