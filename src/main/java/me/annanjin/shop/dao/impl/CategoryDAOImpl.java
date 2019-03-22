@@ -8,5 +8,5 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Transactional
-public class CategoryDAOImpl extends DAOAbstract<Integer, CategoryEntity> implements CategoryDAO{
+public class CategoryDAOImpl extends DAOAbstract<Integer, CategoryEntity> implements CategoryDAO {
 }

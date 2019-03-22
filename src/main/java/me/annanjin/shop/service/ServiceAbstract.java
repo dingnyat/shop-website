@@ -15,12 +15,9 @@ import java.util.stream.Collectors;
 public abstract class ServiceAbstract<PrimaryKeyType extends Serializable, M extends CommonModel, E, D extends DAOInterface> {
 
     protected D repository;
-
-    private Class<E> entityClazz;
-
-    private Class<M> modelClazz;
-
     protected BeanTools beanTools;
+    private Class<E> entityClazz;
+    private Class<M> modelClazz;
 
     public ServiceAbstract(D repository, BeanTools beanTools) {
         this.repository = repository;
