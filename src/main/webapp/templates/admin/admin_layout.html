@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Admin Management</title>
+</head>
+<body>
+<header layout:fragment="header">
+  <nav class="navbar navbar-expand-lg navbar-light justify-content-between" style="background-color: #563d7c;">
+    <a class="navbar-brand text-light" href="#">
+      <img th:src="@{/static/logo.png}" alt="logo" class="d-inline-block align-top rounded img-thumbnail" width="40px"
+           height="40px" src="#">
+    </a>
+    <div class="collapse navbar-collapse">
+      <div class="navbar-nav">
+        <a class="nav-item nav-link text-light" href="#">Home</a>
+        <a class="nav-item nav-link text-light" href="#">Blog</a>
+        <a class="nav-item nav-link text-light" href="#"><strong>About me</strong></a>
+      </div>
+    </div>
+    <form class="form-inline">
+      <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+      <button class="btn btn-outline-warning my-2 my-sm-0" type="submit">Search</button>
+    </form>
+  </nav>
+</header>
+<section layout:fragment="content_body">
+
+</section>
+</body>
+</html>
