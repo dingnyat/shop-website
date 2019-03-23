@@ -37,7 +37,6 @@ public class CustomPersistentTokenBasedRememberMeServices extends PersistentToke
                 String[] cookieTokens = this.decodeCookie(rememberMeCookie);
                 if (cookieTokens.length == 2) {
                     String series = cookieTokens[0];
-                    System.out.println("tesss" + series);
                     this.tokenRepository.removeUserTokens(series);
                 }
             }

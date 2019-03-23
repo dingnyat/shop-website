@@ -1,7 +1,7 @@
 package me.annanjin.shop.model;
 
-public class Product {
-    private int id;
+public class Product extends CommonModel<Integer> {
+
     private String name;
     private int quantity;
     private double price;
@@ -18,14 +18,6 @@ public class Product {
         this.price = price;
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {

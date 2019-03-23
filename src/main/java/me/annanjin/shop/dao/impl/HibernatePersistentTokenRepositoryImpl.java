@@ -31,7 +31,6 @@ public class HibernatePersistentTokenRepositoryImpl implements PersistentTokenRe
     public PersistentRememberMeToken getTokenForSeries(String series) {
         PersistentLogin persistentLogin = entityManager.find(PersistentLogin.class, series);
         if (persistentLogin == null) return null;
-        System.out.println(persistentLogin.getUsername());
         return new PersistentRememberMeToken(persistentLogin.getUsername(),
                 persistentLogin.getSeries(), persistentLogin.getToken(), persistentLogin.getLast_used());
     }
