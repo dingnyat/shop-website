@@ -1,9 +1,13 @@
 package me.annanjin.shop.service.impl;
 
+import me.annanjin.shop.dao.CategoryDAO;
+import me.annanjin.shop.dao.ProductCategoryDAO;
 import me.annanjin.shop.dao.ProductDAO;
+import me.annanjin.shop.entity.ProductCategoryEntity;
 import me.annanjin.shop.entity.ProductEntity;
 import me.annanjin.shop.model.Product;
 import me.annanjin.shop.service.ProductService;
+import me.annanjin.shop.service.ServiceAbstract;
 import me.annanjin.shop.utils.BeanTools;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,53 +18,36 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+public class ProductServiceImpl extends ServiceAbstract<Integer, Product, ProductEntity, ProductDAO> implements ProductService {
 
-public class ProductServiceImpl implements ProductService {
+    public ProductServiceImpl(@Autowired ProductDAO repository, @Autowired BeanTools beanTools) {
+        super(repository, beanTools);
+    }
 
     @Autowired
-    private ProductDAO productDAO;
+    private CategoryDAO categoryDAO;
 
     @Autowired
-    private BeanTools beanTools;
-
-    @Override
-    public Integer add(Product product) {
-        return productDAO.add(beanTools.convert(product, new ProductEntity()));
-    }
-
-    @Override
-    public void update(Product product) {
-        ProductEntity productEntity = productDAO.getById(product.getId());
-        beanTools.convert(product, productEntity);
-        productDAO.update(productEntity);
-    }
-
-    @Override
-    public void remove(Integer id) {
-        ProductEntity productEntity = productDAO.getById(id);
-        productDAO.remove(productEntity);
-    }
-
-    @Override
-    public Product getById(Integer id) {
-        ProductEntity productEntity = productDAO.getById(id);
-        return beanTools.convert(productEntity, new Product());
-    }
+    private ProductCategoryDAO productCategoryDAO;
 
     @Override
     public List<Product> getByName(String name) {
-        List<ProductEntity> productEntities = productDAO.getByName(name);
+        List<ProductEntity> productEntities = repository.getByName(name);
         return productEntities.stream()
                 .map(productEntity -> beanTools.convert(productEntity, new Product()))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<Product> getAll() {
-        List<ProductEntity> productEntities = productDAO.getAll();
-        return productEntities.stream()
-                .map(productEntity -> beanTools.convert(productEntity, new Product()))
-                .collect(Collectors.toList());
+    public Integer addWithCategories(Product product, List<Integer> categoriyIds) {
+        Integer id = this.add(product);
+        for (Integer categoryId : categoriyIds) {
+            ProductCategoryEntity entity = new ProductCategoryEntity();
+            entity.setCategoryEntity(categoryDAO.getById(categoryId));
+            entity.setProductEntity(repository.getById(id));
+            productCategoryDAO.add(entity);
+        }
+        return id;
     }
 }
 

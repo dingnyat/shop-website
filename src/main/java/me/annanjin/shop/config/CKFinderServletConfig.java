@@ -17,7 +17,7 @@ public class CKFinderServletConfig {
     @Bean
     public ServletRegistrationBean connectCKFinder() {
         ServletRegistrationBean registrationBean = new ServletRegistrationBean(new ConnectorServlet(), "/ckfinder/core/connector/java/connector.java");
-        registrationBean.addInitParameter("XMLConfig", "classpath:/static/ckfinder_config.xml");
+        registrationBean.addInitParameter("XMLConfig", "/ckfinder_config.xml");
         registrationBean.addInitParameter("debug", "false");
         registrationBean.addInitParameter("configuration", CKFinderConfig.class.getName());
         registrationBean.addInitParameter("baseDir", baseDir);

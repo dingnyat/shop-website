@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface ProductService extends ServiceInterface<Integer, Product> {
     List<Product> getByName(String name);
+
+    Integer addWithCategories(Product product, List<Integer> categoriyIds);
 }

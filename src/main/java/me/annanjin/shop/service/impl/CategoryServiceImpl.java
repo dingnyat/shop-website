@@ -13,8 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class CategoryServiceImpl extends ServiceAbstract<Integer, Category, CategoryEntity, CategoryDAO> implements CategoryService {
-    @Autowired
-    public CategoryServiceImpl(CategoryDAO repository, BeanTools beanTools) {
+
+    public CategoryServiceImpl(@Autowired CategoryDAO repository,@Autowired BeanTools beanTools) {
         super(repository, beanTools);
     }
 }

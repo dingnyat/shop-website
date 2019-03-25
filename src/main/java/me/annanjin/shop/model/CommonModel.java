@@ -2,7 +2,9 @@ package me.annanjin.shop.model;
 
 import java.io.Serializable;
 
-public abstract class CommonModel<PrimaryKeyType extends Serializable> {
+public abstract class CommonModel<PrimaryKeyType extends Serializable> implements Serializable{
+
+    private static final long serialVersionUID = 1L;
 
     protected PrimaryKeyType id;
 

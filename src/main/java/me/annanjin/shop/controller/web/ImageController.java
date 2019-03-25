@@ -18,7 +18,6 @@ public class ImageController {
         String filePath = "C:/upload/images/" + imgName;
         File file = new File(filePath);
         response.setContentType(MediaType.IMAGE_PNG_VALUE);
-        System.out.println(file.getAbsolutePath());
         if (file.isFile()){
             Files.copy(file.toPath(), response.getOutputStream());
         }

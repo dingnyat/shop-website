@@ -6,8 +6,10 @@ import javax.persistence.*;
 @Table(name = "product_category",
         uniqueConstraints = {@UniqueConstraint(columnNames = {"product_id", "category_id"})})
 public class ProductCategoryEntity {
+
     @Id
     @Column(name = "id", nullable = false, unique = true)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @ManyToOne(fetch = FetchType.LAZY)
