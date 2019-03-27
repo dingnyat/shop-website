@@ -3,8 +3,10 @@ package me.annanjin.shop.service.impl;
 import me.annanjin.shop.dao.CategoryDAO;
 import me.annanjin.shop.dao.ProductCategoryDAO;
 import me.annanjin.shop.dao.ProductDAO;
+import me.annanjin.shop.entity.CategoryEntity;
 import me.annanjin.shop.entity.ProductCategoryEntity;
 import me.annanjin.shop.entity.ProductEntity;
+import me.annanjin.shop.model.Category;
 import me.annanjin.shop.model.Product;
 import me.annanjin.shop.service.ProductService;
 import me.annanjin.shop.service.ServiceAbstract;
@@ -48,6 +50,14 @@ public class ProductServiceImpl extends ServiceAbstract<Integer, Product, Produc
             productCategoryDAO.add(entity);
         }
         return id;
+    }
+
+    @Override
+    public List<Category> getCategoriesOfProduct(Integer id) {
+        List<CategoryEntity> categoryEntities = productCategoryDAO.getByProductId(id);
+        return categoryEntities.stream()
+                .map(categoryEntity -> beanTools.convert(categoryEntity, new Category()))
+                .collect(Collectors.toList());
     }
 }
 

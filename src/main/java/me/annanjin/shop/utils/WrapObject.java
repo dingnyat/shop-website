@@ -7,6 +7,11 @@ public class WrapObject<T, U> {
     public WrapObject() {
     }
 
+    public WrapObject(T firstObject, U secondObject) {
+        this.firstObject = firstObject;
+        this.secondObject = secondObject;
+    }
+
     public T getFirstObject() {
         return firstObject;
     }
