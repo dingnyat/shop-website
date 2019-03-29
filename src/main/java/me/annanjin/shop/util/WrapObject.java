@@ -1,10 +1,15 @@
-package me.annanjin.shop.utils;
+package me.annanjin.shop.util;
 
 public class WrapObject<T, U> {
     private T firstObject;
     private U secondObject;
 
     public WrapObject() {
+    }
+
+    public WrapObject(T firstObject, U secondObject) {
+        this.firstObject = firstObject;
+        this.secondObject = secondObject;
     }
 
     public T getFirstObject() {

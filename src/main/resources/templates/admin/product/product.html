@@ -3,8 +3,16 @@
       layout:decorate="~{admin/admin_layout}">
 <head>
   <title>Add Product</title>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js" type="text/javascript"></script>
-  <link href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet"/>
+  <!--js jquery ui autocomplete-->
+  <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <!--js jquery table-->
+  <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+  <!--bootstrap jquery table-->
+  <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+  <!--css jquery ui autocomplete-->
+  <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"/>
+  <!--bootstrap css jquery table-->
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
   <script type="text/javascript" th:src="@{/ckeditor/ckeditor.js}"></script>
   <script type="text/javascript" th:src="@{/ckfinder/ckfinder.js}"></script>
   <script>
@@ -31,6 +39,27 @@
       }
 
       $(function () {
+
+          $("#product-table").DataTable({
+              "ajax": {
+                  url: "/admin/product/list",
+                  type: "GET",
+                  dataType: "json"
+              },
+              "deferRender": true,
+              "columns": [
+                  {"data": "firstObject.id"},
+                  {"data": "firstObject.name"},
+                  {"data": "firstObject.quantity"},
+                  {"data": "firstObject.price"},
+                  {"data": "secondObject[, ].name"},
+                  {"data": "firstObject.id"}
+              ],
+              "language": {
+                  url: "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Vietnamese.json"
+              }
+          });
+
           // autocomplete widget ui
           $.widget("custom.combobox", {
               _create: function () {
@@ -63,7 +92,6 @@
                       });
                   this._on(this.input, {
                       autocompleteselect: function (event, ui) {
-                          console.log("dsa");
                           categoryTags.set(ui.item.value, ui.item.label);
                           let text = "";
                           categoryTags.forEach(function (value, key) {
@@ -272,12 +300,57 @@
     .custom-form-div {
       margin: 0 15px 0 15px;
     }
+
+    td {
+      word-break: break-all;
+    }
   </style>
 </head>
 <body>
 <section layout:fragment="content_body">
-  <button type="button" data-target="#add-product-form-modal" data-toggle="modal" class="btn btn-primary">Add Product
-  </button>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="row my-4">
+          <div class="col-md-6">
+            <h3>List of Products</h3>
+          </div>
+          <div class="col-md-6">
+            <button type="button" data-target="#add-product-form-modal" data-toggle="modal" class="btn btn-primary">
+              Add
+            </button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12 table-responsive-md">
+            <table id="product-table" class="table table-borderless table-hover">
+              <thead>
+              <tr>
+                <th scope="col">Id</th>
+                <th scope="col" style="width: 30%;">Name</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Price</th>
+                <th scope="col">Category</th>
+                <th scope="col">Action</th>
+              </tr>
+              </thead>
+              <tfoot>
+              <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Action</th>
+              </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!--adding product modal-->
   <div class="modal fade" data-backdrop="static" data-keyboard="false" role="dialog" id="add-product-form-modal">
     <div class="modal-dialog modal-xl">

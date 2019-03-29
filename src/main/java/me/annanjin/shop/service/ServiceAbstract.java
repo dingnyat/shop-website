@@ -2,7 +2,8 @@ package me.annanjin.shop.service;
 
 import me.annanjin.shop.dao.DAOInterface;
 import me.annanjin.shop.model.CommonModel;
-import me.annanjin.shop.utils.BeanTools;
+import me.annanjin.shop.util.BeanTools;
+import me.annanjin.shop.util.search.SearchCriteria;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
@@ -67,5 +68,26 @@ public abstract class ServiceAbstract<PrimaryKeyType extends Serializable, M ext
                     }
                 })
                 .collect(Collectors.toList());
+    }
+
+    public List<M> search(List<SearchCriteria> searchCriteria) {
+        List<E> entityList = repository.search(searchCriteria);
+        return entityList.stream()
+                .map(entity -> {
+                    try {
+                        return beanTools.convert(entity, modelClazz.getConstructor().newInstance());
+                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                        return null;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    public Long count(List<SearchCriteria> searchCriteria) {
+        return repository.count(searchCriteria);
+    }
+
+    public Long countTotal() {
+        return repository.countTotal();
     }
 }

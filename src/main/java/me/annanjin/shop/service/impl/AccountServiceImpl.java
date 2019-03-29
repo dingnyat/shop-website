@@ -4,80 +4,45 @@ import me.annanjin.shop.dao.AccountDAO;
 import me.annanjin.shop.entity.AccountEntity;
 import me.annanjin.shop.model.Account;
 import me.annanjin.shop.service.AccountService;
-import me.annanjin.shop.utils.BeanTools;
+import me.annanjin.shop.service.ServiceAbstract;
+import me.annanjin.shop.util.BeanTools;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 @Transactional
-public class AccountServiceImpl implements AccountService {
-
-    @Autowired
-    private AccountDAO accountDAO;
+public class AccountServiceImpl extends ServiceAbstract<Integer, Account, AccountEntity, AccountDAO> implements AccountService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private BeanTools beanTools;
+    public AccountServiceImpl(@Autowired AccountDAO repository, @Autowired BeanTools beanTools) {
+        super(repository, beanTools);
+    }
 
     @Override
     public Integer add(Account account) {
-        AccountEntity accountEntity = beanTools.convert(account, new AccountEntity());
-        accountEntity.setPassword(passwordEncoder.encode(account.getPassword()));
-        return accountDAO.add(accountEntity);
+        account.setPassword(passwordEncoder.encode(account.getPassword()));
+        return super.add(account);
     }
 
     @Override
     public void update(Account account) {
-        AccountEntity accountEntity = accountDAO.getByUsername(account.getUsername());
-        beanTools.convert(account, accountEntity);
-        accountEntity.setPassword(passwordEncoder.encode(account.getPassword()));
-        accountDAO.update(accountEntity);
-    }
-
-    @Override
-    public void remove(Integer id) {
-        accountDAO.remove(accountDAO.getById(id));
-    }
-
-    @Override
-    public Account getById(Integer id) {
-        AccountEntity accountEntity = accountDAO.getById(id);
-        if (accountEntity == null) return null;
-        return beanTools.convert(accountEntity, new Account());
+        account.setPassword(passwordEncoder.encode(account.getPassword()));
+        super.update(account);
     }
 
     @Override
     public void delete(String username) {
-        accountDAO.remove(accountDAO.getByUsername(username));
+        repository.remove(repository.getByUsername(username));
     }
 
     @Override
     public Account getByUsername(String username) {
-        AccountEntity accountEntity = accountDAO.getByUsername(username);
+        AccountEntity accountEntity = repository.getByUsername(username);
         if (accountEntity == null) return null;
         return beanTools.convert(accountEntity, new Account());
-    }
-
-    @Override
-    public List<Account> searchByName(String name) {
-        List<AccountEntity> accountEntities = accountDAO.searchByName(name);
-        return accountEntities.stream()
-                .map(accountEntity -> beanTools.convert(accountEntity, new Account()))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Account> getAll() {
-        List<AccountEntity> accountEntities = accountDAO.getAll();
-        return accountEntities.stream()
-                .map(accountEntity -> beanTools.convert(accountEntity, new Account()))
-                .collect(Collectors.toList());
     }
 }

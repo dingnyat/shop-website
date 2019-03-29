@@ -1,16 +1,24 @@
 package me.annanjin.shop.dao;
 
+import me.annanjin.shop.util.search.SearchCriteria;
+
 import java.io.Serializable;
 import java.util.List;
 
-public interface DAOInterface<PrimaryKeyType extends Serializable, T> {
-    PrimaryKeyType add(T entity);
+public interface DAOInterface<PrimaryKeyType extends Serializable, E> {
+    PrimaryKeyType add(E entity);
 
-    void update(T entity);
+    void update(E entity);
 
-    void remove(T entity);
+    void remove(E entity);
 
-    T getById(PrimaryKeyType id);
+    E getById(PrimaryKeyType id);
 
-    List<T> getAll();
+    List<E> getAll();
+
+    List<E> search(List<SearchCriteria> searchCriteria);
+
+    Long count(List<SearchCriteria> searchCriteria);
+
+    Long countTotal();
 }

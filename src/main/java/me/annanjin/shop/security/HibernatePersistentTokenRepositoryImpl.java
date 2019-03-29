@@ -1,4 +1,4 @@
-package me.annanjin.shop.dao.impl;
+package me.annanjin.shop.security;
 
 import me.annanjin.shop.entity.PersistentLogin;
 import org.springframework.security.web.authentication.rememberme.PersistentRememberMeToken;
