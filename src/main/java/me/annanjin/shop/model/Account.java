@@ -3,9 +3,8 @@ package me.annanjin.shop.model;
 import com.google.gson.annotations.Expose;
 import org.springframework.web.multipart.MultipartFile;
 
-public class Account {
+public class Account extends CommonModel<Integer> {
 
-    private int id;
     private String username;
     private String password;
     private String name;
@@ -19,8 +18,7 @@ public class Account {
     public Account() {
     }
 
-    public Account(int id, String username, String password, String name, String address, String phone, String email, String avatarUrl, MultipartFile multipartFile) {
-        this.id = id;
+    public Account(String username, String password, String name, String address, String phone, String email, String avatarUrl, MultipartFile multipartFile) {
         this.username = username;
         this.password = password;
         this.name = name;
@@ -29,14 +27,6 @@ public class Account {
         this.email = email;
         this.avatarUrl = avatarUrl;
         this.multipartFile = multipartFile;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getUsername() {

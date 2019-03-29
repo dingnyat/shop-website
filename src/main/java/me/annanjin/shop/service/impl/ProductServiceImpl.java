@@ -10,7 +10,7 @@ import me.annanjin.shop.model.Category;
 import me.annanjin.shop.model.Product;
 import me.annanjin.shop.service.ProductService;
 import me.annanjin.shop.service.ServiceAbstract;
-import me.annanjin.shop.utils.BeanTools;
+import me.annanjin.shop.util.BeanTools;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,14 +31,6 @@ public class ProductServiceImpl extends ServiceAbstract<Integer, Product, Produc
 
     @Autowired
     private ProductCategoryDAO productCategoryDAO;
-
-    @Override
-    public List<Product> getByName(String name) {
-        List<ProductEntity> productEntities = repository.getByName(name);
-        return productEntities.stream()
-                .map(productEntity -> beanTools.convert(productEntity, new Product()))
-                .collect(Collectors.toList());
-    }
 
     @Override
     public Integer addWithCategories(Product product, List<Integer> categoriyIds) {

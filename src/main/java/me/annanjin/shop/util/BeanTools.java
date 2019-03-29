@@ -1,4 +1,4 @@
-package me.annanjin.shop.utils;
+package me.annanjin.shop.util;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;

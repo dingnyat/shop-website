@@ -2,9 +2,9 @@ package me.annanjin.shop.controller.api;
 
 import me.annanjin.shop.model.Category;
 import me.annanjin.shop.model.Product;
-import me.annanjin.shop.model.TableRecordResponseData;
 import me.annanjin.shop.service.ProductService;
-import me.annanjin.shop.utils.WrapObject;
+import me.annanjin.shop.util.TableRecordResponseData;
+import me.annanjin.shop.util.WrapObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

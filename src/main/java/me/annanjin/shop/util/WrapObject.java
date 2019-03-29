@@ -1,4 +1,4 @@
-package me.annanjin.shop.utils;
+package me.annanjin.shop.util;
 
 public class WrapObject<T, U> {
     private T firstObject;

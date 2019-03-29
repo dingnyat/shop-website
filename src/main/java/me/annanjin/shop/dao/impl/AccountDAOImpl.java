@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.NoResultException;
-import java.util.List;
 
 @Repository
 @Transactional
@@ -22,11 +21,5 @@ public class AccountDAOImpl extends DAOAbstract<Integer, AccountEntity> implemen
         } catch (NoResultException e) {
             return null;
         }
-    }
-
-    @Override
-    public List<AccountEntity> searchByName(String name) {
-        return this.entityManager.createQuery("SELECT a FROM AccountEntity a WHERE a.name = :name", AccountEntity.class)
-                .setParameter("name", name).getResultList();
     }
 }
