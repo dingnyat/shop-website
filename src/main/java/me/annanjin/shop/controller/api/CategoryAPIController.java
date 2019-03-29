@@ -3,13 +3,11 @@ package me.annanjin.shop.controller.api;
 import me.annanjin.shop.model.Category;
 import me.annanjin.shop.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
 public class CategoryAPIController {
 
     @Autowired
@@ -19,5 +17,44 @@ public class CategoryAPIController {
     public @ResponseBody
     List<Category> categories() {
         return categoryService.getAll();
+    }
+
+    @PostMapping("/admin/category/add")
+    @ResponseBody
+    public String addCategory(@RequestBody Category category) {
+        try {
+            categoryService.add(category);
+            return "Successfully!";
+        } catch (Exception e) {
+            return "Failed!";
+        }
+    }
+
+    @PostMapping("/admin/category/edit")
+    public @ResponseBody
+    String editCategory(@RequestBody Category category) {
+        try {
+            categoryService.update(category);
+            return "Successfully";
+        } catch (Exception e) {
+            return "Failed!";
+        }
+    }
+
+    @GetMapping("/admin/category/{id}")
+    public @ResponseBody
+    Category getCategory(@PathVariable("id") int id) {
+        return categoryService.getById(id);
+    }
+
+    @GetMapping("/admin/category/delete/{id}")
+    public @ResponseBody
+    String deleteCategory(@PathVariable("id") int id) {
+        try {
+            categoryService.remove(id);
+            return "Successfully!";
+        } catch (Exception e) {
+            return "Failed!";
+        }
     }
 }
