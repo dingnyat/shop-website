@@ -13,17 +13,16 @@ public class CategoryAPIController {
     @Autowired
     private CategoryService categoryService;
 
-    @PostMapping("/admin/category/list")
-    public @ResponseBody
-    List<Category> categories() {
-        return categoryService.getAll();
+    @PostMapping("/api/category/list")
+    public List<Category> categories() {
+        return categoryService.getAllRecords();
     }
 
     @PostMapping("/admin/category/add")
     @ResponseBody
     public String addCategory(@RequestBody Category category) {
         try {
-            categoryService.add(category);
+            categoryService.create(category);
             return "Successfully!";
         } catch (Exception e) {
             return "Failed!";
@@ -51,7 +50,7 @@ public class CategoryAPIController {
     public @ResponseBody
     String deleteCategory(@PathVariable("id") int id) {
         try {
-            categoryService.remove(id);
+            categoryService.delete(id);
             return "Successfully!";
         } catch (Exception e) {
             return "Failed!";

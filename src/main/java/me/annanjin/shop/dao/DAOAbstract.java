@@ -1,16 +1,20 @@
 package me.annanjin.shop.dao;
 
+import me.annanjin.shop.util.datatable.DataTableRequest;
 import me.annanjin.shop.util.search.SearchCriteria;
 import me.annanjin.shop.util.search.SearchCriteriaConsumer;
+import me.annanjin.shop.util.search.SearchOperator;
 import org.hibernate.Session;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +34,7 @@ public abstract class DAOAbstract<PrimaryKeyType extends Serializable, E> {
         entityName = this.entityClazz.getName().substring(index + 1);
     }
 
-    public PrimaryKeyType add(E entity) {
+    public PrimaryKeyType create(E entity) {
         entityManager.persist(entity);
         return (PrimaryKeyType) ((Session) entityManager.getDelegate()).getIdentifier(entity);
     }
@@ -39,7 +43,7 @@ public abstract class DAOAbstract<PrimaryKeyType extends Serializable, E> {
         entityManager.merge(entity);
     }
 
-    public void remove(E entity) {
+    public void delete(E entity) {
         entityManager.remove(entity);
     }
 
@@ -47,7 +51,7 @@ public abstract class DAOAbstract<PrimaryKeyType extends Serializable, E> {
         return entityManager.find(entityClazz, id);
     }
 
-    public List<E> getAll() {
+    public List<E> getAllRecords() {
         entityClazz.getName();
         return entityManager.createQuery("SELECT a FROM " + entityName + " a", entityClazz).getResultList();
     }
@@ -64,7 +68,7 @@ public abstract class DAOAbstract<PrimaryKeyType extends Serializable, E> {
         return entityManager.createQuery(criteriaQuery).getResultList();
     }
 
-    public Long count(List<SearchCriteria> searchCriteria) {
+    public Long getTheNumberOfSearchedRecords(List<SearchCriteria> searchCriteria) {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
         Root<E> root = criteriaQuery.from(entityClazz);
@@ -76,7 +80,42 @@ public abstract class DAOAbstract<PrimaryKeyType extends Serializable, E> {
         return entityManager.createQuery(criteriaQuery.select(criteriaBuilder.count(root))).getSingleResult();
     }
 
-    public Long countTotal() {
+    public List<E> getTableData(DataTableRequest dataTableRequest) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<E> criteriaQuery = criteriaBuilder.createQuery(entityClazz);
+        Root<E> root = criteriaQuery.from(entityClazz);
+        List<Predicate> predicates = new ArrayList<>();
+        if (dataTableRequest.getSearch().getValue() != null && !dataTableRequest.getSearch().getValue().isEmpty()) {
+            SearchCriteriaConsumer searchCriteriaConsumer = new SearchCriteriaConsumer(criteriaBuilder, root);
+            for (Field field : entityClazz.getDeclaredFields()) {
+                SearchCriteria searchCriteria = new SearchCriteria(field.getName(), SearchOperator.CONTAINS, dataTableRequest.getSearch().getValue());
+                predicates.add(searchCriteriaConsumer.createPredicate(searchCriteria));
+            }
+            criteriaQuery.where(criteriaBuilder.or(predicates.toArray(new Predicate[]{})));
+        }
+        TypedQuery<E> typedQuery = entityManager.createQuery(criteriaQuery);
+        typedQuery.setFirstResult(dataTableRequest.getStart());
+        typedQuery.setMaxResults(dataTableRequest.getLength());
+        return typedQuery.getResultList();
+    }
+
+    public Long getTheNumberOfFilteredRecords(DataTableRequest dataTableRequest) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
+        Root<E> root = criteriaQuery.from(entityClazz);
+        List<Predicate> predicates = new ArrayList<>();
+        if (dataTableRequest.getSearch().getValue() != null && !dataTableRequest.getSearch().getValue().isEmpty()) {
+            SearchCriteriaConsumer searchCriteriaConsumer = new SearchCriteriaConsumer(criteriaBuilder, root);
+            for (Field field : entityClazz.getDeclaredFields()) {
+                SearchCriteria searchCriteria = new SearchCriteria(field.getName(), SearchOperator.CONTAINS, dataTableRequest.getSearch().getValue());
+                predicates.add(searchCriteriaConsumer.createPredicate(searchCriteria));
+            }
+            criteriaQuery.where(criteriaBuilder.or(predicates.toArray(new Predicate[]{})));
+        }
+        return entityManager.createQuery(criteriaQuery.select(criteriaBuilder.count(root))).getSingleResult();
+    }
+
+    public Long getTheNumberOfAllRecords() {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
         Root<E> root = criteriaQuery.from(entityClazz);

@@ -1,25 +1,30 @@
 package me.annanjin.shop.util.search;
 
 public enum SearchOperator {
-    EQUALITY, NEGATION, GREATER_THAN, LESS_THAN, LIKE, STARTS_WITH, ENDS_WITH, CONTAINS;
+    EQUALITY(":"), NEGATION("!"), GREATER_THAN(">"), LESS_THAN("<"),
+    LIKE("~"), STARTS_WITH(null), ENDS_WITH(null), CONTAINS(null);
 
     // not have start, end, contain operator
     public static final String[] SIMPLE_OPERATION_SET = {":", "!", ">", "<", "~"};
 
-    public static SearchOperator getSimpleOperation(char input) {
-        switch (input) {
-            case ':':
-                return EQUALITY;
-            case '!':
-                return NEGATION;
-            case '>':
-                return GREATER_THAN;
-            case '<':
-                return LESS_THAN;
-            case '~':
-                return LIKE;
-            default:
-                return null;
+    private String sign;
+
+    SearchOperator(String sign) {
+        this.sign = sign;
+    }
+
+    public String getSign() {
+        return sign;
+    }
+
+    public static SearchOperator getOperator(String sign) {
+        if (sign != null && !sign.isEmpty()) {
+            for (SearchOperator searchOperator : SearchOperator.values()) {
+                if (sign.equalsIgnoreCase(searchOperator.getSign())) {
+                    return searchOperator;
+                }
+            }
         }
+        return null;
     }
 }

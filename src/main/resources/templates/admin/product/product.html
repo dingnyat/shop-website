@@ -16,48 +16,51 @@
   <script type="text/javascript" th:src="@{/ckeditor/ckeditor.js}"></script>
   <script type="text/javascript" th:src="@{/ckfinder/ckfinder.js}"></script>
   <script>
-      let imgUrl = "";
-      let categoryTags = new Map();
-
-      function removeCategory(categoryId) {
-          categoryTags.delete(categoryId);
-      }
-
-      // CKFinder
-      function BrowseServer(startupPath) {
-          let finder = new CKFinder();
-          finder.basePath = '../';
-          finder.startupPath = startupPath;
-          finder.selectActionFunction = SetFileField;
-          finder.popup();
-      }
-
-      function SetFileField(fileUrl) {
-          imgUrl = fileUrl;
-          $("#input-file-label").html(this.getSelectedFile().name);
-          $("#input-file-label").css("color", "green");
-      }
+      let selectedImgUrl = "";
+      let productCategories = new Map();
+      let table;
+      let categories;
 
       $(function () {
+          $.ajax({
+              type: "POST",
+              url: "/api/category/list",
+              dataType: "json",
+              success: function (respData) {
+                  categories = respData;
+                  let text = '<option></option>';
+                  for (let i = 0; i < categories.length; i++) {
+                      text += ('<option value="' + categories[i].id + '">' + categories[i].name + '</option>');
+                  }
+                  $("#input-category").html(text);
+              }
+          });
 
-          $("#product-table").DataTable({
+          table = $("#product-table").DataTable({
+              "processing": true,
+              "serverSide": true,
               "ajax": {
-                  url: "/admin/product/list",
-                  type: "GET",
-                  dataType: "json"
+                  url: "/api/admin/product/table_data",
+                  type: "POST",
+                  dataType: "json",
+                  contentType: "application/json",
+                  data: function (datatableRequest) {
+                      return JSON.stringify(datatableRequest);
+                  }
               },
               "deferRender": true,
               "columns": [
-                  {"data": "firstObject.id"},
-                  {"data": "firstObject.name"},
-                  {"data": "firstObject.quantity"},
-                  {"data": "firstObject.price"},
-                  {"data": "secondObject[, ].name"},
-                  {"data": "firstObject.id"}
+                  {"data": "id"},
+                  {"data": "name"},
+                  {"data": "quantity"},
+                  {"data": "price"},
+                  {"data": "categories[, ].name"},
+                  {"data": "id"}
               ],
               "language": {
                   url: "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Vietnamese.json"
-              }
+              },
+              "lengthMenu": [10, 25, 50, 100, 200]
           });
 
           // autocomplete widget ui
@@ -92,9 +95,9 @@
                       });
                   this._on(this.input, {
                       autocompleteselect: function (event, ui) {
-                          categoryTags.set(ui.item.value, ui.item.label);
+                          productCategories.set(ui.item.value, ui.item.label);
                           let text = "";
-                          categoryTags.forEach(function (value, key) {
+                          productCategories.forEach(function (value, key) {
                               let tmp = "'" + key + "'";
                               text += '<div class="category-tag alert alert-info">\n' +
                                   value +
@@ -190,13 +193,19 @@
           $("#input-category").combobox();
 
           // press button to submit form via ajax
-          $('button[type=submit]').click(function (e) {
+          $('button[type=submit]').on("click", function (e) {
               e.preventDefault();
               let name = $("#input-name").val();
               let quantity = $("#input-quantity").val();
               let price = $("#input-price").val();
-              let thumbnailUrl = imgUrl;
+              let thumbnailUrl = selectedImgUrl;
               let description = CKEDITOR.instances['input-description'].getData();
+              let seletedCategories = [];
+              categories.forEach(e => {
+                  if (productCategories.has(e.id.toString())) {
+                      seletedCategories.push(e);
+                  }
+              });
               // simple (for testing) validation before post
               if (name.length <= 0 || quantity.length <= 0 || price.length <= 0
                   || thumbnailUrl.length <= 0 || description.length <= 0) {
@@ -209,22 +218,20 @@
               }
               // post
               let postData = {
-                  firstObject: {
-                      "name": name,
-                      "quantity": quantity,
-                      "price": price,
-                      "description": description,
-                      "thumbnailUrl": thumbnailUrl
-                  },
-                  secondObject: Array.from(categoryTags.keys()) // JSON cant stringify a set
+                  "name": name,
+                  "quantity": quantity,
+                  "price": price,
+                  "categories": seletedCategories,
+                  "description": description,
+                  "thumbnailUrl": thumbnailUrl
               };
               $.ajax({
-                  url: "/admin/product/add",
+                  url: "/api/admin/product/add",
                   type: "POST",
                   contentType: "application/json",
                   data: JSON.stringify(postData),
                   success: function (receivedDataFromServer) {
-                      imgUrl = "";
+                      selectedImgUrl = "";
                       $("#input-name").val("");
                       $("#input-quantity").val("");
                       $("#input-price").val("");
@@ -232,12 +239,13 @@
                       $("#input-file-label").html("Choose thumbnail image...");
                       $("#input-file-label").css("color", "black");
                       CKEDITOR.instances['input-description'].setData("");
-                      categoryTags.clear();
+                      productCategories.clear();
                       $(".custom-combobox-input").val("");
                       $("#selected-category-list").html("");
                       $("#add-product-status").html(receivedDataFromServer);
                       $("#add-product-form-modal").modal('hide');
                       $("#add-product-status-modal").modal('show');
+                      table.draw();
                   },
                   error: function () {
                       $("#add-product-status").html("Can't connect to server!");
@@ -255,6 +263,25 @@
               }
           });
       });
+
+      function removeCategory(categoryId) {
+          productCategories.delete(categoryId);
+      }
+
+      // CKFinder
+      function BrowseServer(startupPath) {
+          let finder = new CKFinder();
+          finder.basePath = '../';
+          finder.startupPath = startupPath;
+          finder.selectActionFunction = SetFileField;
+          finder.popup();
+      }
+
+      function SetFileField(fileUrl) {
+          selectedImgUrl = fileUrl;
+          $("#input-file-label").html(this.getSelectedFile().name);
+          $("#input-file-label").css("color", "green");
+      }
   </script>
   <style>
     #add-product-form-modal .modal-body {
@@ -385,8 +412,6 @@
                 <div id="selected-category-list"></div>
                 <div class="ui-widget">
                   <select id="input-category">
-                    <option></option>
-                    <option th:each="cate : ${categories}" th:text="${cate.name}" th:value="${cate.id}"></option>
                   </select>
                 </div>
               </div>

@@ -3,6 +3,7 @@ package me.annanjin.shop.service;
 import me.annanjin.shop.dao.DAOInterface;
 import me.annanjin.shop.model.CommonModel;
 import me.annanjin.shop.util.BeanTools;
+import me.annanjin.shop.util.datatable.DataTableRequest;
 import me.annanjin.shop.util.search.SearchCriteria;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +28,9 @@ public abstract class ServiceAbstract<PrimaryKeyType extends Serializable, M ext
         this.modelClazz = (Class<M>) ((ParameterizedType) this.getClass().getGenericSuperclass()).getActualTypeArguments()[1];
     }
 
-    public PrimaryKeyType add(M model) {
+    public PrimaryKeyType create(M model) {
         try {
-            return (PrimaryKeyType) repository.add(beanTools.convert(model, entityClazz.getConstructor().newInstance()));
+            return (PrimaryKeyType) repository.create(beanTools.map(model, entityClazz.getConstructor().newInstance()));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
             return null;
@@ -38,31 +39,31 @@ public abstract class ServiceAbstract<PrimaryKeyType extends Serializable, M ext
 
     public void update(M model) {
         E entity = (E) repository.getById(model.getId());
-        beanTools.convert(model, entity);
+        beanTools.map(model, entity);
         repository.update(entity);
     }
 
-    public void remove(PrimaryKeyType id) {
+    public void delete(PrimaryKeyType id) {
         E entity = (E) repository.getById(id);
-        repository.remove(entity);
+        repository.delete(entity);
     }
 
     public M getById(PrimaryKeyType id) {
         E entity = (E) repository.getById(id);
         try {
-            return beanTools.convert(entity, modelClazz.getConstructor().newInstance());
+            return beanTools.map(entity, modelClazz.getConstructor().newInstance());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    public List<M> getAll() {
-        List<E> entityList = repository.getAll();
+    public List<M> getAllRecords() {
+        List<E> entityList = repository.getAllRecords();
         return entityList.stream()
                 .map(entity -> {
                     try {
-                        return beanTools.convert(entity, modelClazz.getConstructor().newInstance());
+                        return beanTools.map(entity, modelClazz.getConstructor().newInstance());
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                         return null;
                     }
@@ -75,7 +76,7 @@ public abstract class ServiceAbstract<PrimaryKeyType extends Serializable, M ext
         return entityList.stream()
                 .map(entity -> {
                     try {
-                        return beanTools.convert(entity, modelClazz.getConstructor().newInstance());
+                        return beanTools.map(entity, modelClazz.getConstructor().newInstance());
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                         return null;
                     }
@@ -83,11 +84,28 @@ public abstract class ServiceAbstract<PrimaryKeyType extends Serializable, M ext
                 .collect(Collectors.toList());
     }
 
-    public Long count(List<SearchCriteria> searchCriteria) {
-        return repository.count(searchCriteria);
+    public Long getTheNumberOfSearchedRecords(List<SearchCriteria> searchCriteria) {
+        return repository.getTheNumberOfSearchedRecords(searchCriteria);
     }
 
-    public Long countTotal() {
-        return repository.countTotal();
+    public List<M> getTableData(DataTableRequest dataTableRequest) {
+        List<E> entityList = repository.getTableData(dataTableRequest);
+        return entityList.stream()
+                .map(entity -> {
+                    try {
+                        return beanTools.map(entity, modelClazz.getConstructor().newInstance());
+                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                        return null;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    public Long getTheNumberOfFilteredRecords(DataTableRequest dataTableRequest) {
+        return repository.getTheNumberOfFilteredRecords(dataTableRequest);
+    }
+
+    public Long getTheNumberOfAllRecords() {
+        return repository.getTheNumberOfAllRecords();
     }
 }

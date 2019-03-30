@@ -1,6 +1,7 @@
 package me.annanjin.shop.entity;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "product")
@@ -19,6 +20,14 @@ public class ProductEntity {
     @Column(name = "price", nullable = false)
     private double price;
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "product_category",
+            joinColumns = {@JoinColumn(name = "product_id", nullable = false)},
+            inverseJoinColumns = {@JoinColumn(name = "category_id", nullable = false)},
+            uniqueConstraints = {@UniqueConstraint(columnNames = {"product_id", "category_id"})}
+    )
+    private Set<CategoryEntity> categories;
+
     @Column(name = "description", nullable = false, length = 2048)
     private String description;
 
@@ -28,13 +37,13 @@ public class ProductEntity {
     public ProductEntity() {
     }
 
-    public ProductEntity(String name, int quantity, double price, String description, String thumbnailUrl) {
+    public ProductEntity(String name, int quantity, double price, Set<CategoryEntity> categories, String description, String thumbnailUrl) {
         this.name = name;
         this.quantity = quantity;
         this.price = price;
+        this.categories = categories;
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
-
     }
 
     public int getId() {
@@ -83,5 +92,13 @@ public class ProductEntity {
 
     public void setThumbnailUrl(String thumbnailUrl) {
         this.thumbnailUrl = thumbnailUrl;
+    }
+
+    public Set<CategoryEntity> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(Set<CategoryEntity> categories) {
+        this.categories = categories;
     }
 }

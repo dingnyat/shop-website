@@ -1,24 +1,29 @@
 package me.annanjin.shop.service;
 
+import me.annanjin.shop.util.datatable.DataTableRequest;
 import me.annanjin.shop.util.search.SearchCriteria;
 
 import java.io.Serializable;
 import java.util.List;
 
 public interface ServiceInterface<PrimaryKeyType extends Serializable, M> {
-    PrimaryKeyType add(M model);
+    PrimaryKeyType create(M model);
 
     void update(M model);
 
-    void remove(PrimaryKeyType id);
+    void delete(PrimaryKeyType id);
 
     M getById(PrimaryKeyType id);
 
-    List<M> getAll();
+    List<M> getAllRecords();
 
     List<M> search(List<SearchCriteria> searchCriteria);
 
-    Long count(List<SearchCriteria> searchCriteria);
+    Long getTheNumberOfSearchedRecords(List<SearchCriteria> searchCriteria);
 
-    Long countTotal();
+    List<M> getTableData(DataTableRequest dataTableRequest);
+
+    Long getTheNumberOfFilteredRecords(DataTableRequest dataTableRequest);
+
+    Long getTheNumberOfAllRecords();
 }

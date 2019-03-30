@@ -1,14 +1,23 @@
-package me.annanjin.shop.util;
+package me.annanjin.shop.util.datatable;
 
 import java.util.List;
 
 public class TableRecordResponseData<T> {
-    private List<T> data;
+    private long draw;
     private long recordsTotal;
-    private long recordsFilterd;
+    private long recordsFiltered;
+    private List<T> data;
 
     public TableRecordResponseData(List<T> data) {
         this.data = data;
+    }
+
+    public long getDraw() {
+        return draw;
+    }
+
+    public void setDraw(long draw) {
+        this.draw = draw;
     }
 
     public long getRecordsTotal() {
@@ -19,12 +28,12 @@ public class TableRecordResponseData<T> {
         this.recordsTotal = recordsTotal;
     }
 
-    public long getRecordsFilterd() {
-        return recordsFilterd;
+    public long getRecordsFiltered() {
+        return recordsFiltered;
     }
 
-    public void setRecordsFilterd(long recordsFilterd) {
-        this.recordsFilterd = recordsFilterd;
+    public void setRecordsFiltered(long recordsFiltered) {
+        this.recordsFiltered = recordsFiltered;
     }
 
     public List<T> getData() {

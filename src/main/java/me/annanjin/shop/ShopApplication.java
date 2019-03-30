@@ -40,7 +40,7 @@ public class ShopApplication extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    PersistentTokenBasedRememberMeServices persistentTokenBasedRememberMeServices() {
+    public PersistentTokenBasedRememberMeServices persistentTokenBasedRememberMeServices() {
         return new CustomPersistentTokenBasedRememberMeServices("remember-me", userDetailsService, persistentTokenRepository);
     }
 
@@ -56,6 +56,7 @@ public class ShopApplication extends WebSecurityConfigurerAdapter {
         http.authorizeRequests().and().exceptionHandling().accessDeniedPage("/access_denied");
 
         http.authorizeRequests().antMatchers("/admin/**").hasAnyRole("ADMIN");
+        http.authorizeRequests().antMatchers("/api/admin/**").hasAnyRole("ADMIN");
 
         http.authorizeRequests().and()
                 .formLogin()

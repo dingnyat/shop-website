@@ -27,5 +27,4 @@ public class Category extends CommonModel<Integer> {
     public void setName(String name) {
         this.name = name;
     }
-
 }

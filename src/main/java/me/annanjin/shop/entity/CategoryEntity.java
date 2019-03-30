@@ -1,6 +1,7 @@
 package me.annanjin.shop.entity;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "category")
@@ -17,12 +18,16 @@ public class CategoryEntity {
     @Column(name = "name", nullable = false, unique = true, length = 64)
     private String name;
 
+    @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY)
+    private Set<ProductEntity> products;
+
     public CategoryEntity() {
     }
 
-    public CategoryEntity(String code, String name) {
+    public CategoryEntity(String code, String name, Set<ProductEntity> products) {
         this.code = code;
         this.name = name;
+        this.products = products;
     }
 
     public int getId() {
@@ -49,4 +54,11 @@ public class CategoryEntity {
         this.name = name;
     }
 
+    public Set<ProductEntity> getProducts() {
+        return products;
+    }
+
+    public void setProducts(Set<ProductEntity> products) {
+        this.products = products;
+    }
 }

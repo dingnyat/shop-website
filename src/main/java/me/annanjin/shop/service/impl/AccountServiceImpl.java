@@ -23,9 +23,9 @@ public class AccountServiceImpl extends ServiceAbstract<Integer, Account, Accoun
     }
 
     @Override
-    public Integer add(Account account) {
+    public Integer create(Account account) {
         account.setPassword(passwordEncoder.encode(account.getPassword()));
-        return super.add(account);
+        return super.create(account);
     }
 
     @Override
@@ -36,7 +36,7 @@ public class AccountServiceImpl extends ServiceAbstract<Integer, Account, Accoun
 
     @Override
     public void delete(String username) {
-        repository.remove(repository.getByUsername(username));
+        repository.delete(repository.getByUsername(username));
     }
 
     @Override

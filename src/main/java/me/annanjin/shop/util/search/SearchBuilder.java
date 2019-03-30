@@ -18,7 +18,7 @@ public class SearchBuilder {
     }
 
     public SearchBuilder with(String key, String operator, String prefix, Object value, String suffix) {
-        SearchOperator searchOperator = SearchOperator.getSimpleOperation(operator.charAt(0));
+        SearchOperator searchOperator = SearchOperator.getOperator(operator);
         if (searchOperator != null) {
             if (searchOperator == SearchOperator.EQUALITY) {
                 boolean startWithAsterisk = prefix.contains("*");

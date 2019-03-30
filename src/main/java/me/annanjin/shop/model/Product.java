@@ -1,21 +1,24 @@
 package me.annanjin.shop.model;
 
+import java.util.Set;
+
 public class Product extends CommonModel<Integer> {
 
     private String name;
     private int quantity;
     private double price;
+    private Set<Category> categories;
     private String description;
     private String thumbnailUrl;
 
     public Product() {
     }
 
-    public Product(int id, String name, int quantity, double price, String description, String thumbnailUrl) {
-        this.id = id;
+    public Product(String name, int quantity, double price, Set<Category> categories, String description, String thumbnailUrl) {
         this.name = name;
         this.quantity = quantity;
         this.price = price;
+        this.categories = categories;
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
     }
@@ -42,6 +45,14 @@ public class Product extends CommonModel<Integer> {
 
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    public Set<Category> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(Set<Category> categories) {
+        this.categories = categories;
     }
 
     public String getDescription() {
