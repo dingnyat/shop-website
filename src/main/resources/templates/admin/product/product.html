@@ -9,10 +9,12 @@
   <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
   <!--bootstrap jquery table-->
   <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/select/1.3.0/js/dataTables.select.min.js"></script>
   <!--css jquery ui autocomplete-->
   <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"/>
   <!--bootstrap css jquery table-->
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.3.0/css/select.bootstrap4.min.css">
   <script type="text/javascript" th:src="@{/ckeditor/ckeditor.js}"></script>
   <script type="text/javascript" th:src="@{/ckfinder/ckfinder.js}"></script>
   <script>
@@ -37,9 +39,9 @@
           });
 
           table = $("#product-table").DataTable({
-              "processing": true,
-              "serverSide": true,
-              "ajax": {
+              processing: true,
+              serverSide: true,
+              ajax: {
                   url: "/api/admin/product/table_data",
                   type: "POST",
                   dataType: "json",
@@ -48,19 +50,43 @@
                       return JSON.stringify(datatableRequest);
                   }
               },
-              "deferRender": true,
-              "columns": [
-                  {"data": "id"},
-                  {"data": "name"},
-                  {"data": "quantity"},
-                  {"data": "price"},
-                  {"data": "categories[, ].name"},
-                  {"data": "id"}
+              deferRender: true,
+              columns: [
+                  {data: "id"},
+                  {data: "id"},
+                  {data: "name"},
+                  {data: "quantity"},
+                  {data: "price"},
+                  {data: "categories[, ].name"},
+                  {data: "id"}
               ],
-              "language": {
+              columnDefs: [
+                  {orderable: false, targets: [0, 5, 6]},
+                  {
+                      render: function () {
+                          return "";
+                      },
+                      className: 'select-checkbox',
+                      targets: 0
+                  },
+                  {
+                      render: function (data, type, row) {
+                          return '<button class="btn btn-sm btn-success mx-1">Detail</button>'
+                              + '<button class="btn btn-sm btn-info mx-1">Edit</button>'
+                              + '<button class="btn btn-sm btn-danger mx-1">Delete</button>'
+                      },
+                      targets: 6
+                  }
+              ],
+              select: {
+                  style: 'multi',
+                  selector: 'td:first-child'
+              },
+              order: [1, 'asc'],
+              language: {
                   url: "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Vietnamese.json"
               },
-              "lengthMenu": [10, 25, 50, 100, 200]
+              lengthMenu: [10, 25, 50, 100, 200]
           });
 
           // autocomplete widget ui
@@ -353,6 +379,7 @@
             <table id="product-table" class="table table-borderless table-hover">
               <thead>
               <tr>
+                <th scope="col"></th>
                 <th scope="col">Id</th>
                 <th scope="col" style="width: 30%;">Name</th>
                 <th scope="col">Quantity</th>
@@ -363,6 +390,7 @@
               </thead>
               <tfoot>
               <tr>
+                <th></th>
                 <th>Id</th>
                 <th>Name</th>
                 <th>Quantity</th>

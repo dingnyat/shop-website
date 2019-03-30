@@ -21,9 +21,9 @@ public interface DAOInterface<PrimaryKeyType extends Serializable, E> {
 
     Long getTheNumberOfSearchedRecords(List<SearchCriteria> searchCriteria);
 
-    List<E> getTableData(DataTableRequest dataTableRequest);
+    List<E> getTableData(DataTableRequest dataTableRequest, String... fieldNames);
 
-    Long getTheNumberOfFilteredRecords(DataTableRequest dataTableRequest);
+    Long getTheNumberOfFilteredRecords(DataTableRequest dataTableRequest, String... fieldNames);
 
     Long getTheNumberOfAllRecords();
 }

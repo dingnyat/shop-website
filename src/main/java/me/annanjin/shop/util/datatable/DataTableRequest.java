@@ -13,6 +13,10 @@ public class DataTableRequest {
     public DataTableRequest() {
     }
 
+    public String sortBy(Order order) {
+        return this.columns.get(order.getColumn()).getData();
+    }
+
     public int getDraw() {
         return draw;
     }

@@ -34,11 +34,11 @@ public class ProductAPIController {
 
     @PostMapping("/api/admin/product/table_data")
     public TableRecordResponseData<Product> products(@RequestBody DataTableRequest datatableRequest) {
-        List<Product> products = productService.getTableData(datatableRequest);
+        List<Product> products = productService.getTableData(datatableRequest, "id", "name", "quantity", "price");
         TableRecordResponseData<Product> responseData = new TableRecordResponseData<>(products);
         responseData.setDraw(datatableRequest.getDraw());
         responseData.setRecordsTotal(productService.getTheNumberOfAllRecords());
-        responseData.setRecordsFiltered(productService.getTheNumberOfFilteredRecords(datatableRequest));
+        responseData.setRecordsFiltered(productService.getTheNumberOfFilteredRecords(datatableRequest, "id", "name", "quantity", "price"));
         return responseData;
     }
 

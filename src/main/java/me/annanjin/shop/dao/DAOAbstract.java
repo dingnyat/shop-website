@@ -5,6 +5,7 @@ import me.annanjin.shop.util.search.SearchCriteria;
 import me.annanjin.shop.util.search.SearchCriteriaConsumer;
 import me.annanjin.shop.util.search.SearchOperator;
 import org.hibernate.Session;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -14,7 +15,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,34 +80,46 @@ public abstract class DAOAbstract<PrimaryKeyType extends Serializable, E> {
         return entityManager.createQuery(criteriaQuery.select(criteriaBuilder.count(root))).getSingleResult();
     }
 
-    public List<E> getTableData(DataTableRequest dataTableRequest) {
+    public List<E> getTableData(DataTableRequest dataTableRequest, @Nullable String... fieldNames) {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<E> criteriaQuery = criteriaBuilder.createQuery(entityClazz);
         Root<E> root = criteriaQuery.from(entityClazz);
         List<Predicate> predicates = new ArrayList<>();
-        if (dataTableRequest.getSearch().getValue() != null && !dataTableRequest.getSearch().getValue().isEmpty()) {
-            SearchCriteriaConsumer searchCriteriaConsumer = new SearchCriteriaConsumer(criteriaBuilder, root);
-            for (Field field : entityClazz.getDeclaredFields()) {
-                SearchCriteria searchCriteria = new SearchCriteria(field.getName(), SearchOperator.CONTAINS, dataTableRequest.getSearch().getValue());
-                predicates.add(searchCriteriaConsumer.createPredicate(searchCriteria));
+        if (fieldNames != null && fieldNames.length > 0) {
+            if (dataTableRequest.getSearch().getValue() != null && !dataTableRequest.getSearch().getValue().isEmpty()) {
+                SearchCriteriaConsumer searchCriteriaConsumer = new SearchCriteriaConsumer(criteriaBuilder, root);
+                for (String field : fieldNames) {
+                    SearchCriteria searchCriteria = new SearchCriteria(field, SearchOperator.CONTAINS, dataTableRequest.getSearch().getValue());
+                    predicates.add(searchCriteriaConsumer.createPredicate(searchCriteria));
+                }
+                criteriaQuery.where(criteriaBuilder.or(predicates.toArray(new Predicate[]{})));
             }
-            criteriaQuery.where(criteriaBuilder.or(predicates.toArray(new Predicate[]{})));
+            String orderColumn = dataTableRequest.sortBy(dataTableRequest.getOrder().get(0));
+            for (String field : fieldNames) {
+                if (orderColumn.equalsIgnoreCase(field)) {
+                    if (dataTableRequest.getOrder().get(0).getDir().equalsIgnoreCase("asc")) {
+                        criteriaQuery.orderBy(criteriaBuilder.asc(root.get(field)));
+                    } else {
+                        criteriaQuery.orderBy(criteriaBuilder.desc(root.get(field)));
+                    }
+                }
+            }
         }
-        TypedQuery<E> typedQuery = entityManager.createQuery(criteriaQuery);
+        TypedQuery<E> typedQuery = entityManager.createQuery(criteriaQuery.select(root));
         typedQuery.setFirstResult(dataTableRequest.getStart());
         typedQuery.setMaxResults(dataTableRequest.getLength());
         return typedQuery.getResultList();
     }
 
-    public Long getTheNumberOfFilteredRecords(DataTableRequest dataTableRequest) {
+    public Long getTheNumberOfFilteredRecords(DataTableRequest dataTableRequest, @Nullable String... fieldNames) {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
         Root<E> root = criteriaQuery.from(entityClazz);
         List<Predicate> predicates = new ArrayList<>();
-        if (dataTableRequest.getSearch().getValue() != null && !dataTableRequest.getSearch().getValue().isEmpty()) {
+        if (dataTableRequest.getSearch().getValue() != null && !dataTableRequest.getSearch().getValue().isEmpty() && fieldNames != null && fieldNames.length > 0) {
             SearchCriteriaConsumer searchCriteriaConsumer = new SearchCriteriaConsumer(criteriaBuilder, root);
-            for (Field field : entityClazz.getDeclaredFields()) {
-                SearchCriteria searchCriteria = new SearchCriteria(field.getName(), SearchOperator.CONTAINS, dataTableRequest.getSearch().getValue());
+            for (String field : fieldNames) {
+                SearchCriteria searchCriteria = new SearchCriteria(field, SearchOperator.CONTAINS, dataTableRequest.getSearch().getValue());
                 predicates.add(searchCriteriaConsumer.createPredicate(searchCriteria));
             }
             criteriaQuery.where(criteriaBuilder.or(predicates.toArray(new Predicate[]{})));

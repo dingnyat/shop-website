@@ -88,8 +88,8 @@ public abstract class ServiceAbstract<PrimaryKeyType extends Serializable, M ext
         return repository.getTheNumberOfSearchedRecords(searchCriteria);
     }
 
-    public List<M> getTableData(DataTableRequest dataTableRequest) {
-        List<E> entityList = repository.getTableData(dataTableRequest);
+    public List<M> getTableData(DataTableRequest dataTableRequest, String... fieldNames) {
+        List<E> entityList = repository.getTableData(dataTableRequest, fieldNames);
         return entityList.stream()
                 .map(entity -> {
                     try {
@@ -101,8 +101,8 @@ public abstract class ServiceAbstract<PrimaryKeyType extends Serializable, M ext
                 .collect(Collectors.toList());
     }
 
-    public Long getTheNumberOfFilteredRecords(DataTableRequest dataTableRequest) {
-        return repository.getTheNumberOfFilteredRecords(dataTableRequest);
+    public Long getTheNumberOfFilteredRecords(DataTableRequest dataTableRequest, String... fieldNames) {
+        return repository.getTheNumberOfFilteredRecords(dataTableRequest, fieldNames);
     }
 
     public Long getTheNumberOfAllRecords() {

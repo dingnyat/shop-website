@@ -21,9 +21,9 @@ public interface ServiceInterface<PrimaryKeyType extends Serializable, M> {
 
     Long getTheNumberOfSearchedRecords(List<SearchCriteria> searchCriteria);
 
-    List<M> getTableData(DataTableRequest dataTableRequest);
+    List<M> getTableData(DataTableRequest dataTableRequest, String... fieldNames);
 
-    Long getTheNumberOfFilteredRecords(DataTableRequest dataTableRequest);
+    Long getTheNumberOfFilteredRecords(DataTableRequest dataTableRequest, String... fieldNames);
 
     Long getTheNumberOfAllRecords();
 }
