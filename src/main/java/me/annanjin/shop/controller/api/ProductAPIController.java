@@ -5,9 +5,7 @@ import me.annanjin.shop.service.ProductService;
 import me.annanjin.shop.util.datatable.DataTableRequest;
 import me.annanjin.shop.util.datatable.TableRecordResponseData;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,7 +25,37 @@ public class ProductAPIController {
         }
     }
 
-    @PostMapping("/api/admin/product/list")
+    @PutMapping("/api/admin/product/edit")
+    public String editProduct(@RequestBody Product product) {
+        try {
+            productService.update(product);
+            return "Successfully!";
+        } catch (Exception e) {
+            return "Failed!";
+        }
+    }
+
+    @DeleteMapping("/api/admin/product/delete/{id}")
+    public String deleteProduct(@PathVariable("id") Integer id) {
+        try {
+            productService.delete(id);
+            return "Successfully!";
+        } catch (Exception e) {
+            return "Failed!";
+        }
+    }
+
+    @DeleteMapping("/api/admin/product/selected-delete")
+    public String deleteSelectedProducts(@RequestBody List<Integer> ids) {
+        try {
+            ids.forEach(id -> productService.delete(id));
+            return "Successfully!";
+        } catch (Exception e) {
+            return "Failed!";
+        }
+    }
+
+    @GetMapping("/api/admin/product/list")
     public List<Product> products() {
         return productService.getAllRecords();
     }

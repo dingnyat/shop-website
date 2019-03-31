@@ -22,6 +22,7 @@
       let productCategories = new Map();
       let table;
       let categories;
+      let selectedProducts = new Set();
 
       $(function () {
           $.ajax({
@@ -71,9 +72,10 @@
                   },
                   {
                       render: function (data, type, row) {
-                          return '<button class="btn btn-sm btn-success mx-1">Detail</button>'
-                              + '<button class="btn btn-sm btn-info mx-1">Edit</button>'
-                              + '<button class="btn btn-sm btn-danger mx-1">Delete</button>'
+                          return '<button class="btn btn-sm btn-success ml-1"><i class="fas fa-info-circle"></i></button>'
+                              + '<button onclick="editProductBtnPerform(table.row($(this).parents(\'tr\')).data())" class="btn btn-sm btn-info ml-1"><i class="fas fa-edit"></i></button>'
+                              + '<button data-toggle="modal" data-target="#delete-confirm-dialog" onclick="$(\'#delete-confirm-dialog\').attr(\'data-id\', table.row($(this).parents(\'tr\')).data().id)" class="btn btn-sm btn-danger ml-1"><i class="fas fa-trash-alt"></i></button>'
+                              + '<button class="btn btn-sm btn-secondary ml-1"><i class="fas fa-cart-plus"></i></button>';
                       },
                       targets: 6
                   }
@@ -87,6 +89,14 @@
                   url: "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Vietnamese.json"
               },
               lengthMenu: [10, 25, 50, 100, 200]
+          });
+
+          table.on("select", function (e, dt, type, indexes) {
+              let rowData = table.rows(indexes).data();
+              selectedProducts.add(rowData[0].id);
+          }).on("deselect", function (e, dt, type, indexes) {
+              let rowData = table.rows(indexes).data();
+              selectedProducts.delete(rowData[0].id);
           });
 
           // autocomplete widget ui
@@ -112,7 +122,7 @@
                           delay: 0,
                           minLength: 0,
                           source: $.proxy(this, "_source"),
-                          appendTo: "#add-product-form-modal"
+                          appendTo: "#product-form-modal"
                       })
                       .tooltip({
                           classes: {
@@ -127,7 +137,7 @@
                               let tmp = "'" + key + "'";
                               text += '<div class="category-tag alert alert-info">\n' +
                                   value +
-                                  '<button onclick="removeCategory(' + tmp + ')" value="" type="button" class="close" data-dismiss="alert">&#10005;</button>\n' +
+                                  '<button onclick="productCategories.delete(' + tmp + ')" value="" type="button" class="close" data-dismiss="alert">&#10005;</button>\n' +
                                   '</div>';
                           });
                           $("#selected-category-list").html(text);
@@ -219,68 +229,16 @@
           $("#input-category").combobox();
 
           // press button to submit form via ajax
-          $('button[type=submit]').on("click", function (e) {
+          $('#product-form-modal button[type=submit]').on("click", function (e) {
               e.preventDefault();
-              let name = $("#input-name").val();
-              let quantity = $("#input-quantity").val();
-              let price = $("#input-price").val();
-              let thumbnailUrl = selectedImgUrl;
-              let description = CKEDITOR.instances['input-description'].getData();
-              let seletedCategories = [];
-              categories.forEach(e => {
-                  if (productCategories.has(e.id.toString())) {
-                      seletedCategories.push(e);
-                  }
-              });
-              // simple (for testing) validation before post
-              if (name.length <= 0 || quantity.length <= 0 || price.length <= 0
-                  || thumbnailUrl.length <= 0 || description.length <= 0) {
-                  alert("Fields must be entered!");
-                  return;
+              let product = getProductFromForm();
+              if ($("#product-form-modal button[type=submit]").html() === "Add") {
+                  addProduct(product);
+              } else {
+                  product.id = $("#product-form-modal button[type=submit]").attr("data-edit-id");
+                  editProduct(product);
               }
-              if (isNaN(parseInt(quantity)) || isNaN(parseFloat(price))) {
-                  alert("Must be numeric!");
-                  return;
-              }
-              // post
-              let postData = {
-                  "name": name,
-                  "quantity": quantity,
-                  "price": price,
-                  "categories": seletedCategories,
-                  "description": description,
-                  "thumbnailUrl": thumbnailUrl
-              };
-              $.ajax({
-                  url: "/api/admin/product/add",
-                  type: "POST",
-                  contentType: "application/json",
-                  data: JSON.stringify(postData),
-                  success: function (receivedDataFromServer) {
-                      selectedImgUrl = "";
-                      $("#input-name").val("");
-                      $("#input-quantity").val("");
-                      $("#input-price").val("");
-                      $("#input-description").val("");
-                      $("#input-file-label").html("Choose thumbnail image...");
-                      $("#input-file-label").css("color", "black");
-                      CKEDITOR.instances['input-description'].setData("");
-                      productCategories.clear();
-                      $(".custom-combobox-input").val("");
-                      $("#selected-category-list").html("");
-                      $("#add-product-status").html(receivedDataFromServer);
-                      $("#add-product-form-modal").modal('hide');
-                      $("#add-product-status-modal").modal('show');
-                      table.draw();
-                  },
-                  error: function () {
-                      $("#add-product-status").html("Can't connect to server!");
-                      $("#add-product-form-modal").modal('hide');
-                      $("#add-product-status-modal").modal('show');
-                  }
-              });
           });
-
           // pervent press enter to submit
           $('form').keydown(function (e) {
               if (e.keyCode === 13) {
@@ -290,8 +248,177 @@
           });
       });
 
-      function removeCategory(categoryId) {
-          productCategories.delete(categoryId);
+      function addProductBtnPerform() {
+          resetForm();
+          $("#product-form-modal h3.modal-title").html("Add Product");
+          $("#product-form-modal button[type=submit]").html("Add");
+          $("#product-form-modal button[type=submit]").removeClass("btn-info");
+          $("#product-form-modal button[type=submit]").addClass("btn-primary");
+      }
+
+      function editProductBtnPerform(productRow) {
+          $("#product-form-modal h3.modal-title").html("Edit Product");
+          $("#product-form-modal button[type=submit]").html("Edit");
+          $("#product-form-modal button[type=submit]").removeClass("btn-primary");
+          $("#product-form-modal button[type=submit]").addClass("btn-info");
+          $("#product-form-modal button[type=submit]").attr("data-edit-id", productRow.id);
+          $("#input-name").val(productRow.name);
+          $("#input-quantity").val(productRow.quantity);
+          $("#input-price").val(productRow.price);
+          $("#input-description").val(productRow.description);
+          $("#input-file-label").html(productRow.thumbnailUrl);
+          selectedImgUrl = productRow.thumbnailUrl;
+          $("#input-file-label").css("color", "green");
+          CKEDITOR.instances['input-description'].setData(productRow.description);
+          productRow.categories.forEach(e => {
+              productCategories.set(e.id.toString(), e.name);
+          });
+          let text = "";
+          productCategories.forEach(function (value, key) {
+              let tmp = "'" + key + "'";
+              text += '<div class="category-tag alert alert-info">\n' +
+                  value +
+                  '<button onclick="productCategories.delete(' + tmp + ')" value="" type="button" class="close" data-dismiss="alert">&#10005;</button>\n' +
+                  '</div>';
+          });
+          $("#selected-category-list").html(text);
+          $("#product-form-modal").modal('show');
+      }
+
+      function getProductFromForm() {
+          let name = $("#input-name").val();
+          let quantity = $("#input-quantity").val();
+          let price = $("#input-price").val();
+          let thumbnailUrl = selectedImgUrl;
+          let description = CKEDITOR.instances['input-description'].getData();
+          let seletedCategories = [];
+          categories.forEach(e => {
+              if (productCategories.has(e.id.toString())) {
+                  seletedCategories.push(e);
+              }
+          });
+          // simple (for testing) validation before post
+          if (name.length <= 0 || quantity.length <= 0 || price.length <= 0
+              || thumbnailUrl.length <= 0 || description.length <= 0) {
+              alert("Fields must be entered!");
+              return;
+          }
+          if (isNaN(parseInt(quantity)) || isNaN(parseFloat(price))) {
+              alert("Must be numeric!");
+              return;
+          }
+          // post
+          return {
+              "name": name,
+              "quantity": quantity,
+              "price": price,
+              "categories": seletedCategories,
+              "description": description,
+              "thumbnailUrl": thumbnailUrl
+          };
+      }
+
+      function resetForm() {
+          selectedImgUrl = "";
+          $("#input-name").val("");
+          $("#input-quantity").val("");
+          $("#input-price").val("");
+          $("#input-description").val("");
+          $("#input-file-label").html("Choose thumbnail image...");
+          $("#input-file-label").css("color", "black");
+          CKEDITOR.instances['input-description'].setData("");
+          productCategories.clear();
+          $(".custom-combobox-input").val("");
+          $("#selected-category-list").html("");
+      }
+
+      function addProduct(product) {
+          $.ajax({
+              url: "/api/admin/product/add",
+              type: "POST",
+              contentType: "application/json",
+              data: JSON.stringify(product),
+              success: function (receivedDataFromServer) {
+                  resetForm();
+                  $("#status-msg").html(receivedDataFromServer);
+                  $("#product-form-modal").modal('hide');
+                  $("#status-dialog").modal('show');
+                  table.draw();
+              },
+              error: function () {
+                  resetForm();
+                  $("#status-msg").html("Can't connect to server!");
+                  $("#product-form-modal").modal('hide');
+                  $("#status-dialog").modal('show');
+              }
+          });
+      }
+
+      function editProduct(product) {
+          $.ajax({
+              url: "/api/admin/product/edit",
+              type: "PUT",
+              contentType: "application/json",
+              data: JSON.stringify(product),
+              success: function (receivedDataFromServer) {
+                  resetForm();
+                  $("#status-msg").html(receivedDataFromServer);
+                  $("#product-form-modal").modal('hide');
+                  $("#status-dialog").modal('show');
+                  table.draw();
+              },
+              error: function () {
+                  resetForm();
+                  $("#status-msg").html("Can't connect to server!");
+                  $("#product-form-modal").modal('hide');
+                  $("#status-dialog").modal('show');
+              }
+          });
+      }
+
+      function deleteProduct(productId) {
+          if (productId === undefined) return;
+          $.ajax({
+              url: "/api/admin/product/delete/" + productId,
+              type: "DELETE",
+              dataType: "text",
+              success: function (respData) {
+                  $("#status-msg").html(respData);
+                  $("#delete-confirm-dialog").modal("hide");
+                  $("#delete-confirm-dialog").attr("data-id", null);
+                  $("#status-dialog").modal("show");
+                  table.draw();
+              },
+              error: function () {
+                  $("#status-msg").html("Can't connect to server. Try later!");
+                  $("#delete-confirm-dialog").modal("hide");
+                  $("#delete-confirm-dialog").attr("data-id", null);
+                  $("#status-dialog").modal("show");
+              }
+          });
+      }
+
+      function deleteSelectedProducts() {
+          if (selectedProducts.size <= 0) {
+              alert("Please select aleast an item!");
+              return;
+          }
+          $.ajax({
+              url: "/api/admin/product/selected-delete",
+              type: "DELETE",
+              contentType: "application/json",
+              dataType: "text",
+              data: JSON.stringify(Array.from(selectedProducts)),
+              success: function (respData) {
+                  $("#status-msg").html(respData);
+                  $("#status-dialog").modal("show");
+                  table.draw();
+              },
+              error: function () {
+                  $("#status-msg").html("Can't connect to server. Try later!");
+                  $("#status-dialog").modal("show");
+              }
+          });
       }
 
       // CKFinder
@@ -305,12 +432,13 @@
 
       function SetFileField(fileUrl) {
           selectedImgUrl = fileUrl;
-          $("#input-file-label").html(this.getSelectedFile().name);
+          // $("#input-file-label").html(this.getSelectedFile().name);
+          $("#input-file-label").html(fileUrl);
           $("#input-file-label").css("color", "green");
       }
   </script>
   <style>
-    #add-product-form-modal .modal-body {
+    #product-form-modal .modal-body {
       overflow-y: auto;
       height: calc(100vh - 200px);
     }
@@ -369,8 +497,11 @@
             <h3>List of Products</h3>
           </div>
           <div class="col-md-6">
-            <button type="button" data-target="#add-product-form-modal" data-toggle="modal" class="btn btn-primary">
-              Add
+            <button onclick="addProductBtnPerform()" type="button" data-target="#product-form-modal" data-toggle="modal"
+                    class="btn btn-primary">Add
+            </button>
+            <button type="button" data-target="#delete-all-confirm-dialog" data-toggle="modal" class="btn btn-danger">
+              Delete
             </button>
           </div>
         </div>
@@ -380,12 +511,12 @@
               <thead>
               <tr>
                 <th scope="col"></th>
-                <th scope="col">Id</th>
+                <th scope="col" style="width: 8%;">Id</th>
                 <th scope="col" style="width: 30%;">Name</th>
-                <th scope="col">Quantity</th>
-                <th scope="col">Price</th>
+                <th scope="col" style="width: 8%;">Quantity</th>
+                <th scope="col" style="width: 8%;">Price</th>
                 <th scope="col">Category</th>
-                <th scope="col">Action</th>
+                <th scope="col" style="width: 17%;">Action</th>
               </tr>
               </thead>
               <tfoot>
@@ -405,9 +536,8 @@
       </div>
     </div>
   </div>
-
-  <!--adding product modal-->
-  <div class="modal fade" data-backdrop="static" data-keyboard="false" role="dialog" id="add-product-form-modal">
+  <!--product form modal-->
+  <div class="modal fade" data-backdrop="static" data-keyboard="false" role="dialog" id="product-form-modal">
     <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
@@ -448,9 +578,10 @@
               <label class="control-label col-md-2" for="input-file">Thumbnail Image:</label>
               <div class="custom-form-div">
                 <div class="custom-file col-md-12">
-                  <label class="custom-file-label" for="input-file" id="input-file-label">Choose thumbnail
-                    image...</label>
-                  <input type="file" id="input-file" class="custom-file-input" onclick="BrowseServer('Images:/');">
+                  <label style="cursor: grab;" class="custom-file-label" for="input-file" id="input-file-label">Choose
+                    thumbnail image...</label>
+                  <input style="cursor: grab;" type="file" id="input-file" class="custom-file-input"
+                         onclick="BrowseServer('Images:/');">
                 </div>
               </div>
             </div>
@@ -479,15 +610,53 @@
       </div>
     </div>
   </div>
-  <!--adding status modal-->
-  <div class="modal fade" role="dialog" id="add-product-status-modal">
+  <!--status dialog-->
+  <div class="modal" role="dialog" id="status-dialog">
     <div class="modal-dialog modal-sm modal-dialog-centered">
       <div class="modal-content text-center">
         <div class="model-header">
           <h3 class="modal-title">Status</h3>
         </div>
         <div class="modal-body">
-          <p id="add-product-status"></p>
+          <p id="status-msg"></p>
+        </div>
+        <div class="modal-footer mx-auto d-block">
+          <button class="btn btn-warning" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--confirm dialog-->
+  <div class="modal" role="alertdialog" id="delete-confirm-dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="model-header">
+          <h3 class="modal-title">Confirmation</h3>
+        </div>
+        <div class="modal-body">
+          <p>Do you want to execute this action?</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-warning" data-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger" onclick="deleteProduct($('#delete-confirm-dialog').attr('data-id'))">Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--delete all dialog-->
+  <div class="modal" role="alertdialog" id="delete-all-confirm-dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="model-header">
+          <h3 class="modal-title">Confirmation</h3>
+        </div>
+        <div class="modal-body">
+          <p>Do you want to delete the all selected item?</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-warning" data-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger" data-dismiss="modal" onclick="deleteSelectedProducts()">Delete</button>
         </div>
       </div>
     </div>
