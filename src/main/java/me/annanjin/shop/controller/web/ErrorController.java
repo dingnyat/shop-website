@@ -35,6 +35,11 @@ public class ErrorController implements org.springframework.boot.web.servlet.err
         return "error/error";
     }
 
+    @GetMapping("/access-denied")
+    public String accessDenied() {
+        return "error/access-denied";
+    }
+
     @Override
     public String getErrorPath() {
         return "/error";

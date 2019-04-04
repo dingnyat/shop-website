@@ -76,15 +76,16 @@ public class ShopApplication extends WebSecurityConfigurerAdapter implements Web
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
 
-        http.authorizeRequests().and().exceptionHandling().accessDeniedPage("/access_denied");
-
-        http.authorizeRequests().antMatchers("/admin/**").hasAnyRole("ADMIN");
-        http.authorizeRequests().antMatchers("/api/admin/**").hasAnyRole("ADMIN");
+        http.authorizeRequests()
+                .antMatchers("/admin/**", "/api/admin/**").hasAnyRole("ADMIN")
+                .antMatchers("/user/**").hasAnyRole("ADMIN", "USER")
+                .and().exceptionHandling().accessDeniedPage("/access-denied");
 
         http.authorizeRequests().and()
                 .formLogin()
-                .loginPage("/login").loginProcessingUrl("/login").failureUrl("/login?error=1").successHandler(urlAuthenSuccessHandler)
+                .loginPage("/login").loginProcessingUrl("/login")
                 .usernameParameter("username").passwordParameter("password")
+                .failureUrl("/login?error=1").successHandler(urlAuthenSuccessHandler)
                 .and().rememberMe().key("remember-me").rememberMeServices(this.persistentTokenBasedRememberMeServices()).tokenValiditySeconds(604800)
                 .and().logout().logoutUrl("/logout").logoutSuccessUrl("/login");
     }
