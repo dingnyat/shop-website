@@ -13,20 +13,25 @@ public class ErrorController implements org.springframework.boot.web.servlet.err
     @GetMapping("/error")
     public String hanleError(HttpServletRequest request) {
         Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+        String message = "Sorry, Something went wrong!";
+        String errorCodeMessage = "";
         if (status != null) {
             int statusCode = Integer.valueOf(status.toString());
             if (statusCode == HttpStatus.NOT_FOUND.value()) {
-                return "error/404";
+                errorCodeMessage = "Error 404, Not Found!";
+                message = "Sorry, we couldn't find the page you were looking for.";
             } else if (statusCode == HttpStatus.INTERNAL_SERVER_ERROR.value()) {
-                return "error/500";
+                errorCodeMessage = "Error 500, Internal Server Error!";
             } else if (statusCode == HttpStatus.UNAUTHORIZED.value()) {
-                return "error/401";
+                errorCodeMessage = "Error 401, Unauthorized!";
             } else if (statusCode == HttpStatus.BAD_REQUEST.value()) {
-                return "error/400";
+                errorCodeMessage = "Error 400, Bad Request!";
             } else if (statusCode == HttpStatus.FORBIDDEN.value()) {
-                return "error/403";
+                errorCodeMessage = "Error 403, Forbidden!";
             }
         }
+        request.setAttribute("message", message);
+        request.setAttribute("errorCodeMessage", errorCodeMessage);
         return "error/error";
     }
 
