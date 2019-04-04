@@ -413,6 +413,7 @@
                   $("#status-msg").html(respData);
                   $("#status-dialog").modal("show");
                   table.draw();
+                  selectedProducts.clear();
               },
               error: function () {
                   $("#status-msg").html("Can't connect to server. Try later!");

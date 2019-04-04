@@ -15,9 +15,18 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.i18n.CookieLocaleResolver;
+import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Locale;
 
 @SpringBootApplication
-public class ShopApplication extends WebSecurityConfigurerAdapter {
+public class ShopApplication extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
     @Autowired
     @Qualifier(value = "CustomUserDetailsService")
@@ -42,6 +51,38 @@ public class ShopApplication extends WebSecurityConfigurerAdapter {
     @Bean
     public PersistentTokenBasedRememberMeServices persistentTokenBasedRememberMeServices() {
         return new CustomPersistentTokenBasedRememberMeServices("remember-me", userDetailsService, persistentTokenRepository);
+    }
+
+    @Bean
+    public LocaleResolver localeResolver() {
+        CookieLocaleResolver localeResolver = new CookieLocaleResolver() {
+            @Override
+            public Locale resolveLocale(HttpServletRequest request) {
+                Cookie[] cookies = request.getCookies();
+                if (cookies != null) {
+                    for (Cookie cookie : cookies) {
+                        if (cookie.getName().equalsIgnoreCase("current-locale")) {
+                            String localeCode = cookie.getValue();
+                            if (localeCode != null && !localeCode.isEmpty()) {
+                                return new Locale(localeCode);
+                            }
+                        }
+                    }
+                }
+                return Locale.ENGLISH;
+            }
+        };
+        localeResolver.setCookieMaxAge(60 * 60 * 24);
+        localeResolver.setCookieName("current-locale");
+        localeResolver.setDefaultLocale(Locale.ENGLISH);
+        return localeResolver;
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
+        localeChangeInterceptor.setParamName("lang");
+        registry.addInterceptor(localeChangeInterceptor);
     }
 
     @Override
