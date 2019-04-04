@@ -21,8 +21,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
 
 @SpringBootApplication
@@ -55,23 +53,7 @@ public class ShopApplication extends WebSecurityConfigurerAdapter implements Web
 
     @Bean
     public LocaleResolver localeResolver() {
-        CookieLocaleResolver localeResolver = new CookieLocaleResolver() {
-            @Override
-            public Locale resolveLocale(HttpServletRequest request) {
-                Cookie[] cookies = request.getCookies();
-                if (cookies != null) {
-                    for (Cookie cookie : cookies) {
-                        if (cookie.getName().equalsIgnoreCase("current-locale")) {
-                            String localeCode = cookie.getValue();
-                            if (localeCode != null && !localeCode.isEmpty()) {
-                                return new Locale(localeCode);
-                            }
-                        }
-                    }
-                }
-                return Locale.ENGLISH;
-            }
-        };
+        CookieLocaleResolver localeResolver = new CookieLocaleResolver();
         localeResolver.setCookieMaxAge(60 * 60 * 24);
         localeResolver.setCookieName("current-locale");
         localeResolver.setDefaultLocale(Locale.ENGLISH);

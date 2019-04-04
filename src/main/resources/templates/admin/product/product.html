@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{admin/admin_layout}">
 <head>
-  <title>Add Product</title>
+  <title th:text="#{title.add-product}">Add Product</title>
   <!--js jquery ui autocomplete-->
   <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <!--js jquery table-->
@@ -23,6 +23,7 @@
       let table;
       let categories;
       let selectedProducts = new Set();
+      let languageUrl;
 
       $(function () {
           $.ajax({
@@ -38,6 +39,23 @@
                   $("#input-category").html(text);
               }
           });
+
+          languageUrl = function () {
+              let locale = Cookies.get("current-locale");
+              console.log(locale);
+              if (locale === 'vi') {
+                  return "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Vietnamese.json";
+              } else if (locale === 'en') {
+                  return null;
+              } else if (locale === 'ja') {
+                  return "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Japanese.json";
+              } else if (locale === 'zh') {
+                  return "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Chinese.json";
+              }
+              return null;
+          }();
+
+          console.log(languageUrl);
 
           table = $("#product-table").DataTable({
               processing: true,
@@ -86,7 +104,7 @@
               },
               order: [1, 'asc'],
               language: {
-                  url: "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Vietnamese.json"
+                  url: languageUrl
               },
               lengthMenu: [10, 25, 50, 100, 200]
           });
@@ -495,13 +513,15 @@
       <div class="col-md-12">
         <div class="row my-4">
           <div class="col-md-6">
-            <h3>List of Products</h3>
+            <h3 th:text="#{label.list-of-product}">List of Products</h3>
           </div>
           <div class="col-md-6">
             <button onclick="addProductBtnPerform()" type="button" data-target="#product-form-modal" data-toggle="modal"
-                    class="btn btn-primary">Add
+                    class="btn btn-primary" th:text="#{label.btn.add}">
+              Add
             </button>
-            <button type="button" data-target="#delete-all-confirm-dialog" data-toggle="modal" class="btn btn-danger">
+            <button type="button" data-target="#delete-all-confirm-dialog" data-toggle="modal" class="btn btn-danger"
+                    th:text="#{label.btn.delete}">
               Delete
             </button>
           </div>
@@ -513,22 +533,22 @@
               <tr>
                 <th scope="col"></th>
                 <th scope="col" style="width: 8%;">Id</th>
-                <th scope="col" style="width: 30%;">Name</th>
-                <th scope="col" style="width: 8%;">Quantity</th>
-                <th scope="col" style="width: 8%;">Price</th>
-                <th scope="col">Category</th>
+                <th th:text="#{name}" scope="col" style="width: 30%;">Name</th>
+                <th th:text="#{quantity}" scope="col" style="width: 8%;">Quantity</th>
+                <th th:text="#{price}" scope="col" style="width: 8%;">Price</th>
+                <th th:text="#{category}" scope="col">Category</th>
                 <th scope="col" style="width: 17%;">Action</th>
               </tr>
               </thead>
               <tfoot>
               <tr>
-                <th></th>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Category</th>
-                <th>Action</th>
+                <th scope="col"></th>
+                <th scope="col" style="width: 8%;">Id</th>
+                <th th:text="#{name}" scope="col" style="width: 30%;">Name</th>
+                <th th:text="#{quantity}" scope="col" style="width: 8%;">Quantity</th>
+                <th th:text="#{price}" scope="col" style="width: 8%;">Price</th>
+                <th th:text="#{category}" scope="col">Category</th>
+                <th scope="col" style="width: 17%;">Action</th>
               </tr>
               </tfoot>
             </table>
