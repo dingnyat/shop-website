@@ -39,13 +39,13 @@
                                 <div class="wrapper">
                                   <label>Code:</label>
                                   <input type="text"
-                                         class="form-control" id="cate_code"
-                                         name="cate_code"
+                                         class="form-control" id="cate-code"
+                                         name="cate-code"
                                          style="background-color: #edd7e7"/>
                                   <label>Name:</label>
                                   <input type="text"
-                                         class="form-control" id="cate_name"
-                                         name="cate_name"
+                                         class="form-control" id="cate-name"
+                                         name="cate-name"
                                          style="background-color: #edd7e7"/>
                                 </div>
                               </div>
@@ -85,7 +85,7 @@
         <th>Select</th>
       </tr>
       </thead>
-      <tbody id="bodyTableCate">
+      <tbody id="cate-table-body">
       </tbody>
     </table>
   </div>
@@ -110,13 +110,13 @@
                         <div class="wrapper">
                           <label>Code:</label>
                           <input type="text"
-                                 class="form-control" id="cate_code_edit"
-                                 name="cate_code"
+                                 class="form-control" id="cate-code-edit"
+                                 name="cate-code"
                                  style="background-color: #edd7e7"/>
                           <label>Name:</label>
                           <input type="text"
-                                 class="form-control" id="cate_name_edit"
-                                 name="cate_name"
+                                 class="form-control" id="cate-name-edit"
+                                 name="cate-name"
                                  style="background-color: #edd7e7"/>
                         </div>
                       </div>
@@ -205,21 +205,21 @@
           let saveBtn = document.getElementById("btn-save");
 
           document.getElementById("btn-add").onclick = function () {
-              document.getElementById("cate_code").value = "";
-              document.getElementById("cate_name").value = "";
+              document.getElementById("cate-code").value = "";
+              document.getElementById("cate-name").value = "";
               saveBtn.innerHTML = "Add";
           };
 
           saveBtn.onclick = function (ev) {
-              let categoryCode = document.getElementById("cate_code").value;
-              let categoryName = document.getElementById("cate_name").value;
+              let categoryCode = document.getElementById("cate-code").value;
+              let categoryName = document.getElementById("cate-name").value;
               category = {id: null, code: categoryCode, name: categoryName};
               ajaxCategory(category, "/admin/category/add");
           };
 
           document.getElementById("btn-edit-save").onclick = function (ev) {
-              category['name'] = document.getElementById("cate_name_edit").value;
-              category['code'] = document.getElementById("cate_code_edit").value;
+              category['name'] = document.getElementById("cate-name-edit").value;
+              category['code'] = document.getElementById("cate-code-edit").value;
               ajaxCategory(category, "/admin/category/edit");
           };
 
@@ -266,10 +266,10 @@
       }
 
       function showTableCategory() {
-          let dataTable = document.getElementById('bodyTableCate');
+          let dataTable = document.getElementById('cate-table-body');
           dataTable.innerHTML = "";
           let req = new XMLHttpRequest();
-          req.open('post', '/admin/category/list', true);
+          req.open('post', '/api/category/list', true);
           req.onreadystatechange = function () {
               if (req.readyState !== 4) {
                   return;
@@ -277,6 +277,7 @@
               if (req.status !== 200) {
                   document.getElementById('category-action-status').innerHTML = "Error! Can't connect to server";
               } else {
+                  console.log(this.responseText);
                   let categories = JSON.parse(this.responseText);
                   let text = '';
                   for (let i = 0; i < categories.length; i++) {
@@ -316,8 +317,8 @@
                   $("#category-action-status-modal").modal("show");
               } else {
                   category = JSON.parse(this.responseText);
-                  document.getElementById("cate_code_edit").value = category.code;
-                  document.getElementById("cate_name_edit").value = category.name;
+                  document.getElementById("cate-code-edit").value = category.code;
+                  document.getElementById("cate-name-edit").value = category.name;
                   $("#category-modal-edit").modal("show");
               }
           };

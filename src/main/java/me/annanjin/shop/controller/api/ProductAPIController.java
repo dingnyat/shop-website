@@ -18,7 +18,7 @@ public class ProductAPIController {
     @PostMapping("/api/admin/product/add")
     public String addProduct(@RequestBody Product product) {
         try {
-            productService.create(product);
+                productService.create(product);
             return "Successfully!";
         } catch (Exception e) {
             return "Failed!";

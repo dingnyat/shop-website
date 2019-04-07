@@ -19,7 +19,6 @@ public class CategoryAPIController {
     }
 
     @PostMapping("/admin/category/add")
-    @ResponseBody
     public String addCategory(@RequestBody Category category) {
         try {
             categoryService.create(category);
@@ -30,7 +29,6 @@ public class CategoryAPIController {
     }
 
     @PostMapping("/admin/category/edit")
-    public @ResponseBody
     String editCategory(@RequestBody Category category) {
         try {
             categoryService.update(category);
@@ -41,13 +39,11 @@ public class CategoryAPIController {
     }
 
     @GetMapping("/admin/category/{id}")
-    public @ResponseBody
     Category getCategory(@PathVariable("id") int id) {
         return categoryService.getById(id);
     }
 
     @GetMapping("/admin/category/delete/{id}")
-    public @ResponseBody
     String deleteCategory(@PathVariable("id") int id) {
         try {
             categoryService.delete(id);

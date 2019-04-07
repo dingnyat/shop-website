@@ -20,7 +20,7 @@ public class UrlAuthenSuccessHandler extends SimpleUrlAuthenticationSuccessHandl
 
     private String determineTargetUrl(Authentication authentication) {
         List<GrantedAuthority> authorities = (List<GrantedAuthority>) authentication.getAuthorities();
-        List<String> roles = new ArrayList<String>();
+        List<String> roles = new ArrayList<>();
         for (GrantedAuthority authority : authorities) {
             roles.add(authority.getAuthority());
         }

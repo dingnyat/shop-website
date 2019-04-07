@@ -3,6 +3,8 @@ package me.annanjin.shop.model;
 import com.google.gson.annotations.Expose;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Set;
+
 public class Account extends CommonModel<Integer> {
 
     private String username;
@@ -12,13 +14,14 @@ public class Account extends CommonModel<Integer> {
     private String phone;
     private String email;
     private String avatarUrl;
+    private Set<Role> roles;
     @Expose(serialize = false)
     private MultipartFile multipartFile;
 
     public Account() {
     }
 
-    public Account(String username, String password, String name, String address, String phone, String email, String avatarUrl, MultipartFile multipartFile) {
+    public Account(String username, String password, String name, String address, String phone, String email, String avatarUrl, Set<Role> roles, MultipartFile multipartFile) {
         this.username = username;
         this.password = password;
         this.name = name;
@@ -26,6 +29,7 @@ public class Account extends CommonModel<Integer> {
         this.phone = phone;
         this.email = email;
         this.avatarUrl = avatarUrl;
+        this.roles = roles;
         this.multipartFile = multipartFile;
     }
 
@@ -83,6 +87,14 @@ public class Account extends CommonModel<Integer> {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
     public MultipartFile getMultipartFile() {

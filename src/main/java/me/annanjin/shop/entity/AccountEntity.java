@@ -1,6 +1,7 @@
 package me.annanjin.shop.entity;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "account")
@@ -32,10 +33,18 @@ public class AccountEntity {
     @Column(name = "avatar_url", length = 1024)
     private String avatarURL;
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "account_role",
+            joinColumns = {@JoinColumn(name = "account_id", nullable = false)},
+            inverseJoinColumns = {@JoinColumn(name = "role_id", nullable = false)},
+            uniqueConstraints = {@UniqueConstraint(columnNames = {"account_id", "role_id"})}
+    )
+    private Set<RoleEntity> roles;
+
     public AccountEntity() {
     }
 
-    public AccountEntity(String username, String password, String name, String address, String phone, String email, String avatarURL) {
+    public AccountEntity(String username, String password, String name, String address, String phone, String email, String avatarURL, Set<RoleEntity> roles) {
         this.username = username;
         this.password = password;
         this.name = name;
@@ -43,6 +52,7 @@ public class AccountEntity {
         this.phone = phone;
         this.email = email;
         this.avatarURL = avatarURL;
+        this.roles = roles;
     }
 
     public int getId() {
@@ -107,5 +117,13 @@ public class AccountEntity {
 
     public void setAvatarURL(String avatarURL) {
         this.avatarURL = avatarURL;
+    }
+
+    public Set<RoleEntity> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<RoleEntity> roles) {
+        this.roles = roles;
     }
 }

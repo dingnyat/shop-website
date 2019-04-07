@@ -13,9 +13,9 @@ import java.nio.file.Files;
 @Controller
 public class ImageController {
 
-    @GetMapping(value = "/public/images/{imgName}")
+    @GetMapping(value = "/images/{imgName}")
     public void loadImage(@PathVariable("imgName") String imgName, HttpServletResponse response) throws IOException {
-        String filePath = "C:/upload/images/" + imgName;
+        String filePath = "D:\\user"+ File.separator + imgName;
         File file = new File(filePath);
         response.setContentType(MediaType.IMAGE_PNG_VALUE);
         if (file.isFile()){
