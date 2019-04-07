@@ -1,6 +1,6 @@
 package me.annanjin.shop;
 
-import me.annanjin.shop.security.CustomPersistentTokenBasedRememberMeServices;
+import me.annanjin.shop.security.CustomPersistentTokenBasedRememberMeService;
 import me.annanjin.shop.security.UrlAuthenSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,6 +26,10 @@ import java.util.Locale;
 @SpringBootApplication
 public class ShopApplication extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
+    public static void main(String[] args) {
+        SpringApplication.run(ShopApplication.class, args);
+    }
+
     @Autowired
     @Qualifier(value = "CustomUserDetailsService")
     private UserDetailsService userDetailsService;
@@ -37,18 +41,10 @@ public class ShopApplication extends WebSecurityConfigurerAdapter implements Web
     @Autowired
     private UrlAuthenSuccessHandler urlAuthenSuccessHandler;
 
-    public static void main(String[] args) {
-        SpringApplication.run(ShopApplication.class, args);
-    }
-
+    // Beans
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
-    }
-
-    @Bean
-    public PersistentTokenBasedRememberMeServices persistentTokenBasedRememberMeServices() {
-        return new CustomPersistentTokenBasedRememberMeServices("remember-me", userDetailsService, persistentTokenRepository);
     }
 
     @Bean
@@ -60,13 +56,12 @@ public class ShopApplication extends WebSecurityConfigurerAdapter implements Web
         return localeResolver;
     }
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
-        localeChangeInterceptor.setParamName("lang");
-        registry.addInterceptor(localeChangeInterceptor);
+    @Bean
+    public PersistentTokenBasedRememberMeServices rememberMeService() {
+        return new CustomPersistentTokenBasedRememberMeService("remember-me", userDetailsService, persistentTokenRepository);
     }
 
+    // Methods
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
@@ -77,8 +72,9 @@ public class ShopApplication extends WebSecurityConfigurerAdapter implements Web
         http.csrf().disable();
 
         http.authorizeRequests()
-                .antMatchers("/admin/**", "/api/admin/**").hasAnyRole("ADMIN")
-                .antMatchers("/user/**").hasAnyRole("ADMIN", "USER")
+                .antMatchers("/admin/login", "/admin/logout", "/login", "/logout").permitAll()
+                .antMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
+                .antMatchers("/user/**", "/api/user/**").hasRole("USER")
                 .and().exceptionHandling().accessDeniedPage("/access-denied");
 
         http.authorizeRequests().and()
@@ -86,7 +82,15 @@ public class ShopApplication extends WebSecurityConfigurerAdapter implements Web
                 .loginPage("/login").loginProcessingUrl("/login")
                 .usernameParameter("username").passwordParameter("password")
                 .failureUrl("/login?error=1").successHandler(urlAuthenSuccessHandler)
-                .and().rememberMe().key("remember-me").rememberMeServices(this.persistentTokenBasedRememberMeServices()).tokenValiditySeconds(604800)
-                .and().logout().logoutUrl("/logout").logoutSuccessUrl("/login");
+                .and().rememberMe().key("remember-me").rememberMeServices(this.rememberMeService()).tokenValiditySeconds(60 * 60 * 24 * 7)
+                .and().logout().logoutUrl("/logout").logoutSuccessUrl("/login")
+                .deleteCookies("JSESSIONID", "remember-me").invalidateHttpSession(true);
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
+        localeChangeInterceptor.setParamName("lang");
+        registry.addInterceptor(localeChangeInterceptor);
     }
 }

@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+  <title th:text="#{title.add-product}">Add Product</title>
+  <!--js jquery ui autocomplete-->
+  <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <!--js jquery table-->
+  <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+  <!--bootstrap jquery table-->
+  <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/select/1.3.0/js/dataTables.select.min.js"></script>
+  <!--css jquery ui autocomplete-->
+  <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"/>
+  <!--bootstrap css jquery table-->
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.3.0/css/select.bootstrap4.min.css">
+  <script type="text/javascript" th:src="@{/ckeditor/ckeditor.js}"></script>
+  <script type="text/javascript" th:src="@{/ckfinder/ckfinder.js}"></script>
+  <script>
+      let selectedImgUrl = "";
+      let productCategories = new Map();
+      let table;
+      let categories;
+      let selectedProducts = new Set();
+      let languageUrl;
+
+      $(function () {
+          $.ajax({
+              type: "POST",
+              url: "/api/category/list",
+              dataType: "json",
+              success: function (respData) {
+                  categories = respData;
+                  let text = '<option></option>';
+                  for (let i = 0; i < categories.length; i++) {
+                      text += ('<option value="' + categories[i].id + '">' + categories[i].name + '</option>');
+                  }
+                  $("#input-category").html(text);
+              }
+          });
+
+          languageUrl = function () {
+              let locale = Cookies.get("current-locale");
+              console.log(locale);
+              if (locale === 'vi') {
+                  return "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Vietnamese.json";
+              } else if (locale === 'en') {
+                  return null;
+              } else if (locale === 'ja') {
+                  return "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Japanese.json";
+              } else if (locale === 'zh') {
+                  return "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Chinese.json";
+              }
+              return null;
+          }();
+
+          console.log(languageUrl);
+
+          table = $("#product-table").DataTable({
+              processing: true,
+              serverSide: true,
+              ajax: {
+                  url: "/api/admin/product/table_data",
+                  type: "POST",
+                  dataType: "json",
+                  contentType: "application/json",
+                  data: function (datatableRequest) {
+                      return JSON.stringify(datatableRequest);
+                  }
+              },
+              deferRender: true,
+              columns: [
+                  {data: "id"},
+                  {data: "id"},
+                  {data: "name"},
+                  {data: "quantity"},
+                  {data: "price"},
+                  {data: "categories[, ].name"},
+                  {data: "id"}
+              ],
+              columnDefs: [
+                  {orderable: false, targets: [0, 5, 6]},
+                  {
+                      render: function () {
+                          return "";
+                      },
+                      className: 'select-checkbox',
+                      targets: 0
+                  },
+                  {
+                      render: function (data, type, row) {
+                          return '<button class="btn btn-sm btn-success ml-1"><i class="fas fa-info-circle"></i></button>'
+                              + '<button onclick="editProductBtnPerform(table.row($(this).parents(\'tr\')).data())" class="btn btn-sm btn-info ml-1"><i class="fas fa-edit"></i></button>'
+                              + '<button data-toggle="modal" data-target="#delete-confirm-dialog" onclick="$(\'#delete-confirm-dialog\').attr(\'data-id\', table.row($(this).parents(\'tr\')).data().id)" class="btn btn-sm btn-danger ml-1"><i class="fas fa-trash-alt"></i></button>'
+                              + '<button class="btn btn-sm btn-secondary ml-1"><i class="fas fa-cart-plus"></i></button>';
+                      },
+                      targets: 6
+                  }
+              ],
+              select: {
+                  style: 'multi',
+                  selector: 'td:first-child'
+              },
+              order: [1, 'asc'],
+              language: {
+                  url: languageUrl
+              },
+              lengthMenu: [10, 25, 50, 100, 200]
+          });
+
+          table.on("select", function (e, dt, type, indexes) {
+              let rowData = table.rows(indexes).data();
+              selectedProducts.add(rowData[0].id);
+          }).on("deselect", function (e, dt, type, indexes) {
+              let rowData = table.rows(indexes).data();
+              selectedProducts.delete(rowData[0].id);
+          });
+
+          // autocomplete widget ui
+          $.widget("custom.combobox", {
+              _create: function () {
+                  this.wrapper = $("<span>")
+                      .addClass("custom-combobox")
+                      .insertAfter(this.element);
+                  this.element.hide();
+                  this._createAutocomplete();
+                  this._createShowAllButton();
+              },
+              _createAutocomplete: function () {
+                  let selected = this.element.children(":selected"),
+                      value = selected.val() ? selected.text() : "";
+
+                  this.input = $("<input>")
+                      .appendTo(this.wrapper)
+                      .val(value)
+                      .attr("title", "")
+                      .addClass("custom-combobox-input ui-widget ui-widget-content ui-state-default ui-corner-left")
+                      .autocomplete({
+                          delay: 0,
+                          minLength: 0,
+                          source: $.proxy(this, "_source"),
+                          appendTo: "#product-form-modal"
+                      })
+                      .tooltip({
+                          classes: {
+                              "ui-tooltip": "ui-state-highlight"
+                          }
+                      });
+                  this._on(this.input, {
+                      autocompleteselect: function (event, ui) {
+                          productCategories.set(ui.item.value, ui.item.label);
+                          let text = "";
+                          productCategories.forEach(function (value, key) {
+                              let tmp = "'" + key + "'";
+                              text += '<div class="category-tag alert alert-info">\n' +
+                                  value +
+                                  '<button onclick="productCategories.delete(' + tmp + ')" value="" type="button" class="close" data-dismiss="alert">&#10005;</button>\n' +
+                                  '</div>';
+                          });
+                          $("#selected-category-list").html(text);
+                          ui.item.option.selected = true;
+                          this._trigger("select", event, {
+                              item: ui.item.option
+                          });
+                      },
+                      autocompletechange: "_removeIfInvalid"
+                  });
+              },
+              _createShowAllButton: function () {
+                  let input = this.input,
+                      wasOpen = false;
+                  $("<a>")
+                      .attr("tabIndex", -1)
+                      .attr("title", "Show All Items")
+                      .tooltip()
+                      .appendTo(this.wrapper)
+                      .button({
+                          icons: {
+                              primary: "ui-icon-triangle-1-s"
+                          },
+                          text: false
+                      })
+                      .removeClass("ui-corner-all")
+                      .addClass("custom-combobox-toggle ui-corner-right")
+                      .on("mousedown", function () {
+                          wasOpen = input.autocomplete("widget").is(":visible");
+                      })
+                      .on("click", function () {
+                          input.trigger("focus");
+                          // Close if already visible
+                          if (wasOpen) {
+                              return;
+                          }
+                          // Pass empty string as value to search for, displaying all results
+                          input.autocomplete("search", "");
+                      });
+              },
+              _source: function (request, response) {
+                  let matcher = new RegExp($.ui.autocomplete.escapeRegex(request.term), "i");
+                  response(this.element.children("option").map(function () {
+                      let text = this.text;
+                      let value = this.value;
+                      if (value && (!request.term || matcher.test(text)))
+                          return {
+                              label: text,
+                              value: value,
+                              option: this
+                          };
+                  }));
+              },
+              _removeIfInvalid: function (event, ui) {
+                  // Selected an item, nothing to do
+                  if (ui.item) {
+                      return;
+                  }
+                  // Search for a match (case-insensitive)
+                  let value = this.input.val(),
+                      valueLowerCase = value.toLowerCase(),
+                      valid = false;
+                  this.element.children("option").each(function () {
+                      if ($(this).text().toLowerCase() === valueLowerCase) {
+                          this.selected = valid = true;
+                          return false;
+                      }
+                  });
+                  // Found a match, nothing to do
+                  if (valid) {
+                      return;
+                  }
+                  // Remove invalid value
+                  this.input
+                      .val("")
+                      .attr("title", value + " didn't match any item")
+                      .tooltip("open");
+                  this.element.val("");
+                  this._delay(function () {
+                      this.input.tooltip("close").attr("title", "");
+                  }, 2500);
+                  this.input.autocomplete("instance").term = "";
+              },
+              _destroy: function () {
+                  this.wrapper.remove();
+                  this.element.show();
+              }
+          });
+          $("#input-category").combobox();
+
+          // press button to submit form via ajax
+          $('#product-form-modal button[type=submit]').on("click", function (e) {
+              e.preventDefault();
+              let product = getProductFromForm();
+              if ($("#product-form-modal button[type=submit]").html() === "Add") {
+                  addProduct(product);
+              } else {
+                  product.id = $("#product-form-modal button[type=submit]").attr("data-edit-id");
+                  editProduct(product);
+              }
+          });
+          // pervent press enter to submit
+          $('form').keydown(function (e) {
+              if (e.keyCode === 13) {
+                  e.preventDefault();
+                  return false;
+              }
+          });
+      });
+
+      function addProductBtnPerform() {
+          resetForm();
+          $("#product-form-modal h3.modal-title").html("Add Product");
+          $("#product-form-modal button[type=submit]").html("Add");
+          $("#product-form-modal button[type=submit]").removeClass("btn-info");
+          $("#product-form-modal button[type=submit]").addClass("btn-primary");
+      }
+
+      function editProductBtnPerform(productRow) {
+          $("#product-form-modal h3.modal-title").html("Edit Product");
+          $("#product-form-modal button[type=submit]").html("Edit");
+          $("#product-form-modal button[type=submit]").removeClass("btn-primary");
+          $("#product-form-modal button[type=submit]").addClass("btn-info");
+          $("#product-form-modal button[type=submit]").attr("data-edit-id", productRow.id);
+          $("#input-name").val(productRow.name);
+          $("#input-quantity").val(productRow.quantity);
+          $("#input-price").val(productRow.price);
+          $("#input-description").val(productRow.description);
+          $("#input-file-label").html(productRow.thumbnailUrl);
+          selectedImgUrl = productRow.thumbnailUrl;
+          $("#input-file-label").css("color", "green");
+          CKEDITOR.instances['input-description'].setData(productRow.description);
+          productRow.categories.forEach(e => {
+              productCategories.set(e.id.toString(), e.name);
+          });
+          let text = "";
+          productCategories.forEach(function (value, key) {
+              let tmp = "'" + key + "'";
+              text += '<div class="category-tag alert alert-info">\n' +
+                  value +
+                  '<button onclick="productCategories.delete(' + tmp + ')" value="" type="button" class="close" data-dismiss="alert">&#10005;</button>\n' +
+                  '</div>';
+          });
+          $("#selected-category-list").html(text);
+          $("#product-form-modal").modal('show');
+      }
+
+      function getProductFromForm() {
+          let name = $("#input-name").val();
+          let quantity = $("#input-quantity").val();
+          let price = $("#input-price").val();
+          let thumbnailUrl = selectedImgUrl;
+          let description = CKEDITOR.instances['input-description'].getData();
+          let seletedCategories = [];
+          categories.forEach(e => {
+              if (productCategories.has(e.id.toString())) {
+                  seletedCategories.push(e);
+              }
+          });
+          // simple (for testing) validation before post
+          if (name.length <= 0 || quantity.length <= 0 || price.length <= 0
+              || thumbnailUrl.length <= 0 || description.length <= 0) {
+              alert("Fields must be entered!");
+              return;
+          }
+          if (isNaN(parseInt(quantity)) || isNaN(parseFloat(price))) {
+              alert("Must be numeric!");
+              return;
+          }
+          // post
+          return {
+              "name": name,
+              "quantity": quantity,
+              "price": price,
+              "categories": seletedCategories,
+              "description": description,
+              "thumbnailUrl": thumbnailUrl
+          };
+      }
+
+      function resetForm() {
+          selectedImgUrl = "";
+          $("#input-name").val("");
+          $("#input-quantity").val("");
+          $("#input-price").val("");
+          $("#input-description").val("");
+          $("#input-file-label").html("Choose thumbnail image...");
+          $("#input-file-label").css("color", "black");
+          CKEDITOR.instances['input-description'].setData("");
+          productCategories.clear();
+          $(".custom-combobox-input").val("");
+          $("#selected-category-list").html("");
+      }
+
+      function addProduct(product) {
+          $.ajax({
+              url: "/api/admin/product/add",
+              type: "POST",
+              contentType: "application/json",
+              data: JSON.stringify(product),
+              success: function (receivedDataFromServer) {
+                  resetForm();
+                  $("#status-msg").html(receivedDataFromServer);
+                  $("#product-form-modal").modal('hide');
+                  $("#status-dialog").modal('show');
+                  table.draw();
+              },
+              error: function () {
+                  resetForm();
+                  $("#status-msg").html("Can't connect to server!");
+                  $("#product-form-modal").modal('hide');
+                  $("#status-dialog").modal('show');
+              }
+          });
+      }
+
+      function editProduct(product) {
+          $.ajax({
+              url: "/api/admin/product/edit",
+              type: "PUT",
+              contentType: "application/json",
+              data: JSON.stringify(product),
+              success: function (receivedDataFromServer) {
+                  resetForm();
+                  $("#status-msg").html(receivedDataFromServer);
+                  $("#product-form-modal").modal('hide');
+                  $("#status-dialog").modal('show');
+                  table.draw();
+              },
+              error: function () {
+                  resetForm();
+                  $("#status-msg").html("Can't connect to server!");
+                  $("#product-form-modal").modal('hide');
+                  $("#status-dialog").modal('show');
+              }
+          });
+      }
+
+      function deleteProduct(productId) {
+          if (productId === undefined) return;
+          $.ajax({
+              url: "/api/admin/product/delete/" + productId,
+              type: "DELETE",
+              dataType: "text",
+              success: function (respData) {
+                  $("#status-msg").html(respData);
+                  $("#delete-confirm-dialog").modal("hide");
+                  $("#delete-confirm-dialog").attr("data-id", null);
+                  $("#status-dialog").modal("show");
+                  table.draw();
+              },
+              error: function () {
+                  $("#status-msg").html("Can't connect to server. Try later!");
+                  $("#delete-confirm-dialog").modal("hide");
+                  $("#delete-confirm-dialog").attr("data-id", null);
+                  $("#status-dialog").modal("show");
+              }
+          });
+      }
+
+      function deleteSelectedProducts() {
+          if (selectedProducts.size <= 0) {
+              alert("Please select aleast an item!");
+              return;
+          }
+          $.ajax({
+              url: "/api/admin/product/selected-delete",
+              type: "DELETE",
+              contentType: "application/json",
+              dataType: "text",
+              data: JSON.stringify(Array.from(selectedProducts)),
+              success: function (respData) {
+                  $("#status-msg").html(respData);
+                  $("#status-dialog").modal("show");
+                  table.draw();
+                  selectedProducts.clear();
+              },
+              error: function () {
+                  $("#status-msg").html("Can't connect to server. Try later!");
+                  $("#status-dialog").modal("show");
+              }
+          });
+      }
+
+      // CKFinder
+      function BrowseServer(startupPath) {
+          let finder = new CKFinder();
+          finder.basePath = '../';
+          finder.startupPath = startupPath;
+          finder.selectActionFunction = SetFileField;
+          finder.popup();
+      }
+
+      function SetFileField(fileUrl) {
+          selectedImgUrl = fileUrl;
+          // $("#input-file-label").html(this.getSelectedFile().name);
+          $("#input-file-label").html(fileUrl);
+          $("#input-file-label").css("color", "red");
+      }
+  </script>
+  <style>
+    #product-form-modal .modal-body {
+      overflow-y: auto;
+      height: calc(100vh - 200px);
+    }
+
+    .custom-combobox {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .custom-combobox-toggle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      margin-left: -1px;
+      padding: 0;
+    }
+
+    .custom-combobox-input {
+      margin: 0;
+      padding: 5px 10px;
+      width: 97%;
+      background-color: white;
+    }
+
+    .category-tag {
+      width: 20%;
+      margin: 1px 5px 10px 5px;
+      max-height: 30px;
+      line-height: 30px;
+      padding: 1px 4px 30px 12px;
+    }
+
+    #selected-category-list {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .custom-form-div {
+      margin: 0 15px 0 15px;
+    }
+
+    td {
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+<section layout:fragment="content_body">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="row my-4">
+          <div class="col-md-6">
+            <h3 th:text="#{label.list-of-product}">List of Products</h3>
+          </div>
+          <div class="col-md-6">
+            <button onclick="addProductBtnPerform()" type="button" data-target="#product-form-modal" data-toggle="modal"
+                    class="btn btn-primary" th:text="#{label.btn.add}">
+              Add
+            </button>
+            <button type="button" data-target="#delete-all-confirm-dialog" data-toggle="modal" class="btn btn-danger"
+                    th:text="#{label.btn.delete}">
+              Delete
+            </button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12 table-responsive-md">
+            <table id="product-table" class="table table-borderless table-hover">
+              <thead>
+              <tr>
+                <th scope="col"></th>
+                <th scope="col" style="width: 8%;">Id</th>
+                <th th:text="#{name}" scope="col" style="width: 30%;">Name</th>
+                <th th:text="#{quantity}" scope="col" style="width: 8%;">Quantity</th>
+                <th th:text="#{price}" scope="col" style="width: 8%;">Price</th>
+                <th th:text="#{category}" scope="col">Category</th>
+                <th scope="col" style="width: 17%;">Action</th>
+              </tr>
+              </thead>
+              <tfoot>
+              <tr>
+                <th scope="col"></th>
+                <th scope="col" style="width: 8%;">Id</th>
+                <th th:text="#{name}" scope="col" style="width: 30%;">Name</th>
+                <th th:text="#{quantity}" scope="col" style="width: 8%;">Quantity</th>
+                <th th:text="#{price}" scope="col" style="width: 8%;">Price</th>
+                <th th:text="#{category}" scope="col">Category</th>
+                <th scope="col" style="width: 17%;">Action</th>
+              </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--product form modal-->
+  <div class="modal fade" data-backdrop="static" data-keyboard="false" role="dialog" id="product-form-modal">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">Add product</h3>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form th:action="@{/admin/product/add}" method="post">
+            <div class="form-group">
+              <label class="control-label col-md-2" for="input-name">Name:</label>
+              <div class="col-md-12">
+                <input class="form-control" id="input-name" type="text">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="control-label col-md-2" for="input-quantity">Quantity:</label>
+              <div class="col-md-12">
+                <input class="form-control" id="input-quantity" type="text">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="control-label col-md-2" for="input-price">Price:</label>
+              <div class="col-md-12">
+                <input class="form-control" id="input-price" type="text">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="control-label col-md-2" style="margin-bottom: 0;" for="input-category">Category</label>
+              <div class="custom-form-div">
+                <div id="selected-category-list"></div>
+                <div class="ui-widget">
+                  <select id="input-category">
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="control-label col-md-2" for="input-file">Thumbnail Image:</label>
+              <div class="custom-form-div">
+                <div class="custom-file col-md-12">
+                  <label style="cursor: grab;" class="custom-file-label" for="input-file" id="input-file-label">Choose
+                    thumbnail image...</label>
+                  <input style="cursor: grab;" type="file" id="input-file" class="custom-file-input"
+                         onclick="BrowseServer('Images:/');">
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="control-label col-md-2" for="input-description">Description:</label>
+              <div class="custom-form-div">
+                <textarea id="input-description"></textarea>
+                <script>
+                    CKEDITOR.replace('input-description', {
+                        filebrowserBrowseUrl: '/ckfinder/ckfinder.html',
+                        filebrowserImageBrowseUrl: '/ckfinder/ckfinder.html?type=Images',
+                        filebrowserFlashBrowseUrl: '/ckfinder/ckfinder.html?type=Flash',
+                        filebrowserUploadUrl: '/ckfinder/core/connector/java/connector.java?command=QuickUpload&type=Files',
+                        filebrowserImageUploadUrl: '/ckfinder/core/connector/java/connector.java?command=QuickUpload&type=Images',
+                        filebrowserFlashUploadUrl: '/ckfinder/core/connector/java/connector.java?command=QuickUpload&type=Flash'
+                    });
+                </script>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-warning" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--status dialog-->
+  <div class="modal" role="dialog" id="status-dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="model-header">
+          <h3 class="modal-title">Status</h3>
+        </div>
+        <div class="modal-body">
+          <p id="status-msg"></p>
+        </div>
+        <div class="modal-footer mx-auto d-block">
+          <button class="btn btn-warning" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--confirm dialog-->
+  <div class="modal" role="alertdialog" id="delete-confirm-dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="model-header">
+          <h3 class="modal-title">Confirmation</h3>
+        </div>
+        <div class="modal-body">
+          <p>Do you want to execute this action?</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-warning" data-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger" onclick="deleteProduct($('#delete-confirm-dialog').attr('data-id'))">Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--delete all dialog-->
+  <div class="modal" role="alertdialog" id="delete-all-confirm-dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="model-header">
+          <h3 class="modal-title">Confirmation</h3>
+        </div>
+        <div class="modal-body">
+          <p>Do you want to delete the all selected item?</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-warning" data-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger" data-dismiss="modal" onclick="deleteSelectedProducts()">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</body>
+</html>

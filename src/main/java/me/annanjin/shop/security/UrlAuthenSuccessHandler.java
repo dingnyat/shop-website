@@ -10,32 +10,25 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class UrlAuthenSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
-    private String determineTargetUrl(Authentication authentication) {
-        List<GrantedAuthority> authorities = (List<GrantedAuthority>) authentication.getAuthorities();
-        List<String> roles = new ArrayList<>();
-        for (GrantedAuthority authority : authorities) {
-            roles.add(authority.getAuthority());
-        }
-
-        if (roles.contains("ROLE_ADMIN")) {
-            return "/admin/dashboard";
-        } else if (roles.contains("ROLE_USER")) {
-            return "/";
-        }
-        return "";
-    }
-
     @Override
     protected void handle(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
-        String targetUrl = determineTargetUrl(authentication);
+        List<String> roles = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
+        String targetUrl = "";
+        if (roles.contains("ROLE_ADMIN")) {
+            targetUrl = "/admin/dashboard";
+            request.getSession().setAttribute("CKFinder_UserRole", "ROLE_ADMIN");
+        } else if (roles.contains("ROLE_USER")) {
+            targetUrl = "/";
+            request.getSession().setAttribute("CKFinder_UserRole", "ROLE_USER");
+        }
         if (response.isCommitted()) {
             System.out.println("Can't redirect");
             return;

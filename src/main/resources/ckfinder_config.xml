@@ -90,7 +90,7 @@
   <userRoleSessionVar>CKFinder_UserRole</userRoleSessionVar>
   <accessControls>
     <accessControl>
-      <role>*</role>
+      <role>ROLE_ADMIN</role>
       <resourceType>*</resourceType>
       <folder>/</folder>
       <folderView>true</folderView>

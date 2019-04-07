@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class RoleServiceImpl extends ServiceAbstract<Integer,Role, RoleEntity, RoleDAO> implements RoleService {
+public class RoleServiceImpl extends ServiceAbstract<Integer, Role, RoleEntity, RoleDAO> implements RoleService {
     public RoleServiceImpl(@Autowired RoleDAO repository, @Autowired BeanTools beanTools) {
         super(repository, beanTools);
     }

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Admin | Annanjin</title>
+  <!--jQuery-->
+  <script type="text/javascript" src="http://code.jquery.com/jquery-3.3.1.js"></script>
+  <!--Bootstrap jQuery-->
+  <!--<script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>-->
+  <script type="text/javascript"
+          src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+  <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+  <!--Bootstrap css-->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
+  <style>
+    .country-flag {
+      width: 25%;
+      height: 25%;
+    }
+
+    .notify-badge {
+      position: absolute;
+      -moz-transform: translate(-50%, -50%); /* For Firefox */
+      -ms-transform: translate(-50%, -50%); /* for IE */
+      -webkit-transform: translate(-50%, -50%); /* For Safari, Chrome, iOS */
+      -o-transform: translate(-50%, -50%); /* For Opera */
+    }
+
+    footer #copyright {
+      width: 100%;
+      margin: auto;
+      padding: 10px;
+      text-align: center;
+    }
+  </style>
+  <script>
+      $(function () {
+          let locale = Cookies.get("current-locale");
+          let src, alt;
+          if (locale === 'vi') {
+              src = "/admin/img/flags/vn.svg";
+              alt = "vi";
+          } else if (locale === 'en') {
+              src = "/admin/img/flags/us.svg";
+              alt = "en";
+          } else if (locale === 'ja') {
+              src = "/admin/img/flags/jp.svg";
+              alt = "ja";
+          } else if (locale === 'zh') {
+              src = "/admin/img/flags/cn.svg";
+              alt = "zh";
+          } else {
+              src = "/admin/img/flags/us.svg";
+              alt = "en";
+          }
+          $("#selected-flags").attr({
+              src: src,
+              alt: alt
+          });
+      });
+  </script>
+</head>
+<body>
+<header layout:fragment="header" class="container-fluid">
+  <nav class="navbar navbar-expand-lg navbar-light justify-content-between py-1" style="background-color: #563d7c;">
+    <a class="navbar-brand text-light" th:href="@{/}">
+      <img th:src="@{/favicon.ico}" alt="logo" class="d-inline-block align-top rounded" width="40px"
+           height="40px" src="#">
+    </a>
+    <div class="collapse navbar-collapse">
+      <div class="navbar-nav">
+        <a class="nav-item nav-link text-light" th:href="@{/admin}">Dashboard</a>
+        <a class="nav-item nav-link text-light" th:href="@{/admin/account}">Account</a>
+        <a class="nav-item nav-link text-light" th:href="@{/admin/category}">Category</a>
+        <a class="nav-item nav-link text-light" th:href="@{/admin/product}">Product</a>
+        <a class="nav-item nav-link text-light" th:href="@{/admin/order}">Order</a>
+      </div>
+    </div>
+    <div class="collapse navbar-collapse d-flex justify-content-end">
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown pt-2 mr-4">
+          <a class="text-light" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">
+            <i class="fas fa-bell"></i>
+            <span class="notify-badge badge badge-pill badge-danger">1</span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-right">
+            <a class="dropdown-item" href="#" style="height: 30px;">
+              <p class="mb-0 float-left">You have 4 new notifications</p>
+              <span class="badge badge-pill badge-warning float-right">View all</span>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">
+              <div>
+                <h6 class="h5">Có user đã trả lời bình luận của bạn</h6>
+                <p class="text">
+                  Sản phẩm này tốt quá
+                </p>
+              </div>
+            </a>
+          </div>
+        </li>
+        <li class="dropdown nav-item">
+          <a class="btn dropdown-toggle text-light px-0" data-toggle="dropdown" aria-expanded="false">
+            <img class="mb-1" width="20px" height="20px" id="selected-flags" alt="lang" src="#">
+          </a>
+          <div class="dropdown-menu dropdown-menu-right">
+            <a class="dropdown-item" th:href="@{${#httpServletRequest.requestURI} + '?lang=vi'}">
+              <img class="country-flag" th:src="@{/admin/img/flags/vn.svg}" alt="vn"
+                   src="/static/admin/img/flags/vn.svg">
+              Vietnamese
+            </a>
+            <a class="dropdown-item" th:href="@{${#httpServletRequest.requestURI} + '?lang=en'}">
+              <img class="country-flag" th:src="@{/admin/img/flags/us.svg}" alt="us"
+                   src="/static/admin/img/flags/us.svg">
+              English
+            </a>
+            <a class="dropdown-item" th:href="@{${#httpServletRequest.requestURI} + '?lang=ja'}">
+              <img class="country-flag" th:src="@{/admin/img/flags/jp.svg}" alt="jp"
+                   src="/static/admin/img/flags/jp.svg">
+              Japanese
+            </a>
+            <a class="dropdown-item" th:href="@{${#httpServletRequest.requestURI} + '?lang=zh'}">
+              <img class="country-flag" th:src="@{/admin/img/flags/cn.svg}" alt="cn"
+                   src="/static/admin/img/flags/cn.svg">
+              Chinese
+            </a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>
+<section layout:fragment="content_body">
+</section>
+<footer class="sticky-bottom container" layout:fragment="footer">
+  <p class="small text-info" id="copyright">Annanjin<sup>&copy;</sup></p>
+</footer>
+</body>
+</html>

@@ -13,12 +13,12 @@ import java.nio.file.Files;
 @Controller
 public class ImageController {
 
-    @GetMapping(value = "/images/{imgName}")
+    @GetMapping(value = "/public/images/{imgName}")
     public void loadImage(@PathVariable("imgName") String imgName, HttpServletResponse response) throws IOException {
-        String filePath = "D:\\user"+ File.separator + imgName;
+        String filePath = "C:/upload/images/" + imgName;
         File file = new File(filePath);
         response.setContentType(MediaType.IMAGE_PNG_VALUE);
-        if (file.isFile()){
+        if (file.isFile()) {
             Files.copy(file.toPath(), response.getOutputStream());
         }
     }
