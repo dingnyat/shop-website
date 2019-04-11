@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org" layout:decorate="~{client/layout}">
+<head>
+  <title>Verify new account</title>
+</head>
+<body>
+<section layout:fragment="site_section">
+  <div class="text-center m-4">
+    <div th:if="${error != null && error == true}">
+      <p class="text-danger" th:text="${message}"></p>
+    </div>
+    <div th:if="${success != null && success == true}">
+      <p class="text-success">Your account is actived!</p>
+    </div>
+    <button class="btn btn-sm btn-primary"><a th:href="@{/}">Go Homepage</a></button>
+  </div>
+</section>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org" layout:decorate="~{client/layout}">
+<head>
+  <title>Register successfully</title>
+</head>
+<body>
+<section layout:fragment="site_section">
+  <div class="text-center m-4">
+    <p>
+      An email attached a confirm link is sent to your email to verify the new account. Token is valid within 30
+      minutes.
+    </p>
+    <button class="btn btn-sm btn-primary"><a th:href="@{/}">Go Homepage</a></button>
+  </div>
+</section>
+</body>
+</html>

@@ -5,6 +5,7 @@ import me.annanjin.shop.model.Role;
 import me.annanjin.shop.service.AccountService;
 import me.annanjin.shop.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,9 @@ public class AdminController {
 
     @Autowired
     private RoleService roleService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping("/login")
     public String login() {
@@ -68,6 +72,7 @@ public class AdminController {
             HashSet<Role> roles = new HashSet<>();
             roles.add(roleService.getById(2));
             account.setRoles(roles);
+            account.setPassword(passwordEncoder.encode(account.getPassword()));
             accountService.create(account);
             return "Successfully!";
         } catch (Exception e) {

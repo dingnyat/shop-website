@@ -22,4 +22,26 @@ public class AccountDAOImpl extends DAOAbstract<Integer, AccountEntity> implemen
             return null;
         }
     }
+
+    @Override
+    public AccountEntity getByEmail(String email) {
+        try {
+            return this.entityManager
+                    .createQuery("SELECT a FROM AccountEntity a WHERE a.email = :email", AccountEntity.class)
+                    .setParameter("email", email).getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public AccountEntity getByPhoneNumber(String phoneNumber) {
+        try {
+            return this.entityManager
+                    .createQuery("SELECT a FROM AccountEntity a WHERE a.phone = :phone", AccountEntity.class)
+                    .setParameter("phone", phoneNumber).getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
 }

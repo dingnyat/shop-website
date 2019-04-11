@@ -15,6 +15,7 @@ public class Account extends CommonModel<Integer> {
     private String email;
     private String avatarUrl;
     private Set<Role> roles;
+    private boolean enabled;
     @Expose(serialize = false)
     private MultipartFile multipartFile;
 
@@ -103,5 +104,13 @@ public class Account extends CommonModel<Integer> {
 
     public void setMultipartFile(MultipartFile multipartFile) {
         this.multipartFile = multipartFile;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

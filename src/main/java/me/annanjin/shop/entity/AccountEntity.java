@@ -41,7 +41,11 @@ public class AccountEntity {
     )
     private Set<RoleEntity> roles;
 
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled;
+
     public AccountEntity() {
+        this.enabled = false;
     }
 
     public AccountEntity(String username, String password, String name, String address, String phone, String email, String avatarURL, Set<RoleEntity> roles) {
@@ -53,6 +57,7 @@ public class AccountEntity {
         this.email = email;
         this.avatarURL = avatarURL;
         this.roles = roles;
+        this.enabled = false;
     }
 
     public int getId() {
@@ -125,5 +130,13 @@ public class AccountEntity {
 
     public void setRoles(Set<RoleEntity> roles) {
         this.roles = roles;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }
