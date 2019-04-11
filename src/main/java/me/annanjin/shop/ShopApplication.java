@@ -1,5 +1,6 @@
 package me.annanjin.shop;
 
+import me.annanjin.shop.security.CustomLogoutSuccessHanlder;
 import me.annanjin.shop.security.CustomPersistentTokenBasedRememberMeService;
 import me.annanjin.shop.security.UrlAuthenSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,9 @@ public class ShopApplication extends WebSecurityConfigurerAdapter implements Web
 
     @Autowired
     private UrlAuthenSuccessHandler urlAuthenSuccessHandler;
+
+    @Autowired
+    private CustomLogoutSuccessHanlder logoutSuccessHanlder;
 
     // Beans
     @Bean
@@ -83,7 +87,7 @@ public class ShopApplication extends WebSecurityConfigurerAdapter implements Web
                 .usernameParameter("username").passwordParameter("password")
                 .failureUrl("/login?error=1").successHandler(urlAuthenSuccessHandler)
                 .and().rememberMe().key("remember-me").rememberMeServices(this.rememberMeService()).tokenValiditySeconds(60 * 60 * 24 * 7)
-                .and().logout().logoutUrl("/logout").logoutSuccessUrl("/login")
+                .and().logout().logoutUrl("/logout").logoutSuccessHandler(this.logoutSuccessHanlder)
                 .deleteCookies("JSESSIONID", "remember-me").invalidateHttpSession(true);
     }
 

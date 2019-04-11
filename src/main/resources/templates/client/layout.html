@@ -36,6 +36,15 @@
       gtag('js', new Date());
       gtag('config', 'UA-97489509-6');
   </script>
+  <style>
+    .nav-link {
+      color: #090912;
+    }
+
+    .nav-link:hover {
+      color: #148fff;
+    }
+  </style>
 </head>
 <body>
 <header layout:fragment="site_header" class="site__header d-lg-block d-none">
@@ -628,13 +637,25 @@
                   <!-- .dropcart / end -->
                 </div>
               </div>
-              <div class="indicator">
+              <div class="indicator indicator--trigger--click">
                 <a href="#" class="indicator__button">
                   <span class="indicator__area" style="font-size: 20px;">
                     <i class="far fa-user"></i>
                     <span class="indicator__value">0</span>
                   </span>
                 </a>
+                <div class="indicator__dropdown" style="transform: translate(75%);">
+                  <div class="dropcart" style="width: 100%; ">
+                    <ul class="nav flex-column" th:if="${session.isLoggedIn == null}">
+                      <li class="nav-item"><a class="nav-link" th:href="@{/login}">Log in</a></li>
+                      <li class="nav-item"><a class="nav-link" th:href="@{/login}">Register</a></li>
+                    </ul>
+                    <ul class="nav flex-column" th:if="${session.isLoggedIn == 'true'}">
+                      <li class="nav-item"><a class="nav-link" th:href="@{/user/profile}">My Account</a></li>
+                      <li class="nav-item"><a class="nav-link" th:href="@{/logout}">Log out</a></li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

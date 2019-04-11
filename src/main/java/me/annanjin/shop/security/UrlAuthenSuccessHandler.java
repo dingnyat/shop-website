@@ -33,6 +33,7 @@ public class UrlAuthenSuccessHandler extends SimpleUrlAuthenticationSuccessHandl
             System.out.println("Can't redirect");
             return;
         }
+        request.getSession().setAttribute("isLoggedIn", "true");
         redirectStrategy.sendRedirect(request, response, targetUrl);
     }
 
