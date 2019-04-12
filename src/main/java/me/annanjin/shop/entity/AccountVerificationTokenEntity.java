@@ -15,7 +15,7 @@ public class AccountVerificationTokenEntity {
     private String token;
 
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "account_id", nullable = false)
+    @JoinColumn(name = "account_id", nullable = false, referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_account_account_token"))
     private AccountEntity account;
 
     @Column(name = "time", nullable = false)

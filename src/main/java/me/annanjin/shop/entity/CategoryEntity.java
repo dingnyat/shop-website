@@ -18,6 +18,16 @@ public class CategoryEntity {
     @Column(name = "name", nullable = false, unique = true, length = 64)
     private String name;
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "parent_child_category",
+            joinColumns = @JoinColumn(name = "child_category_id"),
+            inverseJoinColumns = @JoinColumn(name = "parent_category_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"child_category_id", "parent_category_id"}))
+    private Set<CategoryEntity> childCategories;
+
+    @ManyToMany(mappedBy = "childCategories", fetch = FetchType.EAGER)
+    private Set<CategoryEntity> parentCategories;
+
     @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY)
     private Set<ProductEntity> products;
 

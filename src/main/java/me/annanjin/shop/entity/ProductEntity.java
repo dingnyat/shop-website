@@ -22,10 +22,9 @@ public class ProductEntity {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "product_category",
-            joinColumns = {@JoinColumn(name = "product_id", nullable = false)},
-            inverseJoinColumns = {@JoinColumn(name = "category_id", nullable = false)},
-            uniqueConstraints = {@UniqueConstraint(columnNames = {"product_id", "category_id"})}
-    )
+            joinColumns = {@JoinColumn(name = "product_id", nullable = false, referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_product_product_category"))},
+            inverseJoinColumns = {@JoinColumn(name = "category_id", nullable = false, referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_product_category_category"))},
+            uniqueConstraints = {@UniqueConstraint(columnNames = {"product_id", "category_id"})})
     private Set<CategoryEntity> categories;
 
     @Column(name = "description", nullable = false, length = 2048)

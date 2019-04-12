@@ -35,10 +35,9 @@ public class AccountEntity {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "account_role",
-            joinColumns = {@JoinColumn(name = "account_id", nullable = false)},
-            inverseJoinColumns = {@JoinColumn(name = "role_id", nullable = false)},
-            uniqueConstraints = {@UniqueConstraint(columnNames = {"account_id", "role_id"})}
-    )
+            joinColumns = {@JoinColumn(name = "account_id", nullable = false, referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_account_account_role"))},
+            inverseJoinColumns = {@JoinColumn(name = "role_id", nullable = false, referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_account_role_role"))},
+            uniqueConstraints = {@UniqueConstraint(columnNames = {"account_id", "role_id"})})
     private Set<RoleEntity> roles;
 
     @Column(name = "enabled", nullable = false)
