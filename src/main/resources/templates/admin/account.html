@@ -67,7 +67,7 @@
                           return '<button class="btn btn-sm btn-success ml-1"><i class="fas fa-info-circle"></i></button>'
                               + '<button onclick="editAccountBtnPerform(table.row($(this).parents(\'tr\')).data())" class="btn btn-sm btn-info ml-1"><i class="fas fa-edit"></i></button>'
                               + '<button data-toggle="modal" data-target="#delete-confirm-dialog" onclick="$(\'#delete-confirm-dialog\').attr(\'data-id\', table.row($(this).parents(\'tr\')).data().id)" class="btn btn-sm btn-danger ml-1"><i class="fas fa-trash-alt"></i></button>'
-                              + '<button class="btn btn-sm btn-secondary ml-1"><i class="fas fa-cart-plus"></i></button>';
+                              ;
                       },
                       targets: 7
                   }

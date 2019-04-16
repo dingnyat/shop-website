@@ -275,7 +275,6 @@
               if (req.status !== 200) {
                   document.getElementById('category-action-status').innerHTML = "Error! Can't connect to server";
               } else {
-                  console.log(this.responseText);
                   let categories = JSON.parse(this.responseText);
                   let text = '';
                   for (let i = 0; i < categories.length; i++) {
