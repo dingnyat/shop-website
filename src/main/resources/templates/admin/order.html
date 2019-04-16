@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+  <title th:text="#{title.add-product}">Add Product</title>
+  <!--js jquery ui autocomplete-->
+  <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <!--js jquery table-->
+  <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+  <!--bootstrap jquery table-->
+  <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/select/1.3.0/js/dataTables.select.min.js"></script>
+  <!--css jquery ui autocomplete-->
+  <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"/>
+  <!--bootstrap css jquery table-->
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.3.0/css/select.bootstrap4.min.css">
+  <script type="text/javascript" th:src="@{/ckeditor/ckeditor.js}"></script>
+  <script type="text/javascript" th:src="@{/ckfinder/ckfinder.js}"></script>
+  <script>
+      let table;
+      let languageUrl;
+      let listCartItem = new Map();
+      let orderTable;
+
+      $(function () {
+          let object = {
+              "name": "nhat",
+              'cc': 18,
+              age: 21
+          };
+          languageUrl = function () {
+              let locale = Cookies.get("current-locale");
+              if (locale === 'vi') {
+                  return "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Vietnamese.json";
+              } else if (locale === 'en') {
+                  return null;
+              } else if (locale === 'ja') {
+                  return "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Japanese.json";
+              } else if (locale === 'zh') {
+                  return "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Chinese.json";
+              }
+              return null;
+          }();
+
+          orderTable = $("#order-table").DataTable({
+              processing: true,
+              serverSide: true,
+              ajax: {
+                  url: "/api/admin/order/table_data",
+                  type: "POST",
+                  dataType: "json",
+                  contentType: "application/json",
+                  data: function (dataTableRequest) {
+                      return JSON.stringify(dataTableRequest);
+                  }
+              },
+              columns: [
+                  {data: "id"},
+                  {data: "buyer.name"},
+                  {data: "buyer.address"},
+                  {data: "buyer.phone"},
+                  {data: "dateBuy"},
+                  {data: "id"}
+              ],
+              columnDefs: [
+                  {orderable: false, targets: [5]},
+                  {
+                      render: function (data, type, row) {
+                          return '<button onclick="showInfoCart(orderTable.row($(this).parents(\'tr\')).data())" class="btn btn-sm btn-success ml-1"><i class="fas fa-info-circle"></i></button>'
+                              + '<button onclick="editOrderBtnPerform(orderTable.row($(this).parents(\'tr\')).data())" class="btn btn-sm btn-info ml-1"><i class="fas fa-edit"></i></button>'
+                              + '<button data-toggle="modal" data-target="#delete-confirm-dialog" onclick="$(\'#delete-confirm-dialog\').attr(\'data-id\', orderTable.row($(this).parents(\'tr\')).data().id)" class="btn btn-sm btn-danger ml-1"><i class="fas fa-trash-alt"></i></button>';
+                      },
+                      targets: 5
+                  }
+              ],
+              order: [0, 'asc'],
+              language: {
+                  url: languageUrl
+              },
+              lengthMenu: [5, 10, 20, 50, 100]
+          });
+
+          table = $("#product-table").DataTable({
+              processing: true,
+              serverSide: true,
+              ajax: {
+                  url: "/api/admin/product/table_data",
+                  type: "POST",
+                  dataType: "json",
+                  contentType: "application/json",
+                  data: function (datatableRequest) {
+                      return JSON.stringify(datatableRequest);
+                  }
+              },
+              deferRender: true,
+              columns: [
+                  {data: "id"},
+                  {data: "name"},
+                  {data: "quantity"},
+                  {data: "price"},
+                  {data: "id"}
+              ],
+              columnDefs: [
+                  {orderable: false, targets: [4]},
+                  {
+                      render: function (data, type, row) {
+                          return '<button class="btn btn-sm btn-success ml-1"><i class="fas fa-info-circle"></i></button>'
+                              + '<button onclick="getInfoProduct(table.row($(this).parents(\'tr\')).data())" class="btn btn-sm btn-secondary ml-1" data-toggle="modal" data-target="#buy-quantity-modal"><i class="fas fa-cart-plus"></i></button>';
+                      },
+                      targets: 4
+                  }
+              ],
+              order: [1, 'asc'],
+              language: {
+                  url: languageUrl
+              },
+              lengthMenu: [10, 25, 50, 100, 200]
+          });
+      });
+
+      function addToCart() {
+          let idAccount = getIdAccount();
+          let cart = {
+              "buyer": {"id": idAccount},
+              "cartItems": Array.from(listCartItem.values())
+          };
+          $.ajax({
+              url: "/api/admin/order/add",
+              type: "POST",
+              contentType: "application/json",
+              data: JSON.stringify(cart),
+              success: function (respData) {
+                  resetOrderFormModal();
+                  $("#order-form-modal").modal("hide");
+                  $("#status-msg").html(respData);
+                  $("#status-dialog").modal("show");
+                  orderTable.draw();
+              },
+              error: function () {
+                  resetOrderFormModal();
+                  $("#order-form-modal").modal("hide");
+                  $("#status-msg").html("Can't connect to server. Try later!");
+                  $("#status-dialog").modal("show");
+
+              }
+          });
+      }
+
+      function getIdAccount() {
+          return document.getElementById("idAccount").value;
+      }
+
+      /*get Cart Item*/
+      function getInfoProduct(selectProduct) {
+          if (!listCartItem.has(selectProduct.id)) {
+              listCartItem.set(selectProduct.id, {
+                  "product": selectProduct,
+                  "sellPrice": selectProduct.price,
+                  "buyQuantity": 1,
+                  "cart": null
+              });
+          }
+          showCartItemList();
+      }
+
+      function setBuyQuantity(productID, buyQuantity) {
+          listCartItem.get(productID).buyQuantity = buyQuantity;
+          showCartItemList();
+      }
+
+      function removeCartItem(productID) {
+          listCartItem.delete(productID);
+          showCartItemList();
+      }
+
+      function resetOrderFormModal() {
+          document.getElementById("table-cart-item-body").innerHTML = "";
+          document.getElementById("total-price-value").innerHTML = '0 $';
+          listCartItem.clear();
+      }
+
+      function showCartItemList() {
+          let text = "";
+          let sum = 0;
+          listCartItem.forEach(function (value, key, map) {
+              text += "<tr>" + "<td>" + key + "</td>"
+                  + "<td>" + value.product.name + "</td>"
+                  + "<td>" + value.sellPrice + " $</td>"
+                  + "<td>" + '<input type="number" onchange="setBuyQuantity(' + key + ',this.value)" id="input-buy-quantity" value="' + value.buyQuantity + '" min="1" style="width: 70%;">' + "</td>"
+                  + "<td>" + value.sellPrice * value.buyQuantity + " $</td>"
+                  + "<td>" + '<button type="button" class="btn btn-sm btn-danger" onclick="removeCartItem(' + key + ')"><i class="fas fa-trash-alt"></i></button>' + "</td>"
+                  + "</tr>";
+              sum += value.sellPrice * value.buyQuantity;
+          });
+          document.getElementById("table-cart-item-body").innerHTML = text;
+          document.getElementById("total-price-value").innerHTML = sum;
+      }
+
+      function deleteOrder(orderId) {
+          if (orderId === undefined) return;
+          $.ajax({
+              url: "/api/admin/order/delete/" + orderId,
+              type: "DELETE",
+              dataType: "text",
+              success: function (respData) {
+                  $("#status-msg").html(respData);
+                  $("#delete-confirm-dialog").modal("hide");
+                  $("#delete-confirm-dialog").attr("data-id", null);
+                  $("#status-dialog").modal("show");
+                  orderTable.draw();
+              },
+              error: function () {
+                  $("#status-msg").html("Can't connect to server. Try later!");
+                  $("#delete-confirm-dialog").modal("hide");
+                  $("#delete-confirm-dialog").attr("data-id", null);
+                  $("#status-dialog").modal("show");
+              }
+          });
+      }
+
+      function showInfoCart(cart) {
+          $("#cart-info-modal").modal("show");
+          let infoCart = document.getElementById("cart-info-modal-body-table");
+          infoCart.innerHTML = "";
+          let cartItems = cart.cartItems;
+          let text = '';
+          let totalPrice = 0;
+          for (let i = 0; i < cartItems.length; i++) {
+              let cartItem = cartItems[i];
+              let number = i+1;
+              text += "<tr>"
+                  + "<td>" + number + "</td>"
+                  + "<td>" + cartItem.product.name + "</td>"
+                  + "<td>" + cartItem.buyQuantity + "</td>"
+                  + "<td>" + cartItem.sellPrice + " $</td>"
+                  + "<td>" + cartItem.sellPrice * cartItem.buyQuantity + " $</td>"
+                  + "</tr>";
+              totalPrice += cartItem.sellPrice * cartItem.buyQuantity;
+          }
+          infoCart.innerHTML = text;
+          document.getElementById("total-price-info").innerHTML = totalPrice;
+          document.getElementById("account-order-info").innerHTML = cart.buyer.name;
+          document.getElementById("buy-date-info").innerHTML = cart.dateBuy;
+      }
+  </script>
+  <style>
+    #order-form-modal .modal-body {
+      overflow-y: auto;
+      height: calc(100vh - 200px);
+    }
+
+    td {
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+<section layout:fragment="content_body">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="row my-4">
+          <div class="col-md-3">
+            <h3>List of Orders</h3>
+          </div>
+          <div class="col-md-3">
+            <button type="button" data-target="#order-form-modal" data-toggle="modal" class="btn btn-primary">
+              New order
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12 table-responsive-md">
+        <table id="order-table" class="table table-borderless table-hover" style="width: 100%;">
+          <thead>
+          <tr>
+            <th scope="col" style="width: 8%;">Id</th>
+            <th scope="col" style="width: 15%;">Name</th>
+            <th scope="col" style="width: 15%;">Address</th>
+            <th scope="col" style="width: 10%;">Phone</th>
+            <th scope="col" style="width: 20%;">Date</th>
+            <th scope="col" style="width: 20%;">Action</th>
+          </tr>
+          </thead>
+          <tfoot>
+          <tr>
+            <th scope="col" style="width: 8%;">Id</th>
+            <th scope="col" style="width: 15%;">Name</th>
+            <th scope="col" style="width: 15%;">Address</th>
+            <th scope="col" style="width: 10%;">Phone</th>
+            <th scope="col" style="width: 20%;">Date</th>
+            <th scope="col" style="width: 20%;">Action</th>
+          </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!--product form modal-->
+  <div class="modal fade" data-backdrop="static" data-keyboard="false" role="dialog" id="order-form-modal">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">Add order</h3>
+          <button type="button" class="close" data-dismiss="modal" data-target="#order-form-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6 table-responsive-md">
+              <table id="product-table" class="table table-borderless table-hover" style="width: 100%;">
+                <thead>
+                <tr>
+                  <th scope="col" style="width: 8%;">Id</th>
+                  <th th:text="#{name}" scope="col" style="width: 30%;">Name</th>
+                  <th th:text="#{quantity}" scope="col" style="width: 8%;">Quantity</th>
+                  <th th:text="#{price}" scope="col" style="width: 8%;">Price</th>
+                  <th scope="col" style="width: 20%;">Action</th>
+                </tr>
+                </thead>
+                <tfoot>
+                <tr>
+                  <th scope="col" style="width: 8%;">Id</th>
+                  <th th:text="#{name}" scope="col" style="width: 30%;">Name</th>
+                  <th th:text="#{quantity}" scope="col" style="width: 8%;">Quantity</th>
+                  <th th:text="#{price}" scope="col" style="width: 8%;">Price</th>
+                  <th scope="col" style="width: 20%;">Action</th>
+                </tr>
+                </tfoot>
+              </table>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <div class="row">
+                  <label class="control-label col-md-4"><h5>Account Order:</h5></label>
+                  <div class="checkbox col-md-8">
+                    <select name="idBuyer" class="selectpicker form-control" id="idAccount" onchange="getIdAccount()">
+                      <block th:each="account : ${accountList}">
+                        <option th:value="${account.id}"><span th:text="${account.name}"></span></option>
+                      </block>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <table class="table">
+                  <thead class="thead-light">
+                  <tr>
+                    <th scope="col" style="width: 5%; ">#</th>
+                    <th scope="col" style="width: 30%; ">Name</th>
+                    <th scope="col" style="width: 20%; ">Price</th>
+                    <th scope="col" style="width: 5%">Quantity</th>
+                    <th scope="col" style="width: 20%">Total</th>
+                    <th scope="col" style="width: 10%; ">Action</th>
+                  </tr>
+                  </thead>
+                  <tbody id="table-cart-item-body">
+                  </tbody>
+                </table>
+              </div>
+              <hr>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-9"></div>
+            <div class="col-md-3"><p>Total price: <span id="total-price-value"></span> $</p></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-warning" data-dismiss="modal">Cancel</button>
+          <button type="submit" onclick="addToCart()" class="btn btn-primary">Add to cart</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--status dialog-->
+  <div class="modal" role="dialog" id="status-dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="model-header">
+          <h3 class="modal-title">Status</h3>
+        </div>
+        <div class="modal-body">
+          <p id="status-msg"></p>
+        </div>
+        <div class="modal-footer mx-auto d-block">
+          <button class="btn btn-warning" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" role="alertdialog" id="delete-confirm-dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="model-header">
+          <h3 class="modal-title">Confirmation</h3>
+        </div>
+        <div class="modal-body">
+          <p>Do you want to execute this action?</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-warning" data-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger" onclick="deleteOrder($('#delete-confirm-dialog').attr('data-id'))">Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--delete all dialog-->
+  <div class="modal" role="alertdialog" id="delete-all-confirm-dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="model-header">
+          <h3 class="modal-title">Confirmation</h3>
+        </div>
+        <div class="modal-body">
+          <p>Do you want to delete the all selected item?</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-warning" data-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger" data-dismiss="modal" onclick="deleteSelectedProducts()">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--Cart Info modal-->
+  <div class="modal" role="dialog" id="cart-info-modal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content text-center">
+        <div class="model-header">
+          <h5 class="modal-title">Order Information</h5>
+          <hr style="width: 25%;">
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-12"><p style="margin-right: 79%">Customer: <span id="account-order-info" style="color: #FF0071"></span></p></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12"><p style="margin-right: 60%">Buy date : <span id="buy-date-info"></span></p></div>
+          </div>
+          <hr>
+          <table class="table table-bordered">
+            <thead>
+            <tr>
+              <th scope="col" style="width: 5%;">#</th>
+              <th scope="col" style="width: 20%;">Product</th>
+              <th scope="col" style="width: 10%;">Buy quantity</th>
+              <th scope="col" style="width: 10%;">Sell price</th>
+              <th scope="col" style="width: 10%;">Total</th>
+            </tr>
+            </thead>
+            <tbody id="cart-info-modal-body-table">
+            </tbody>
+          </table>
+          <hr>
+          <div class="row">
+            <div class="col-md-8"></div>
+            <div class="col-md-4"><p style="margin-left: 6%">Total price : <span id="total-price-info"></span> $</p></div>
+          </div>
+        </div>
+        <div class="modal-footer mx-auto d-block">
+          <button class="btn btn-warning" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+</body>
+</html>
