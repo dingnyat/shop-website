@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="format-detection" content="telephone=no">
-  <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Annanjin</title>
+  <title layout:title-pattern="$CONTENT_TITLE | $LAYOUT_TITLE">Annanjin Store</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,400i,500,500i,700,700i">
   <!-- css -->
   <link rel="stylesheet" th:href="@{/client/vendor/bootstrap-4.2.1/css/bootstrap.min.css}">
   <link rel="stylesheet" th:href="@{/client/vendor/owl-carousel-2.3.4/assets/owl.carousel.min.css}">
   <link rel="stylesheet" th:href="@{/client/css/style.css}">
   <!-- js -->
-  <script type="text/javascript" async="" src="https://www.google-analytics.com/analytics.js"></script>
+  <!--<script type="text/javascript" async="" src="https://www.google-analytics.com/analytics.js"></script>-->
   <script type="text/javascript" th:src="@{/client/vendor/jquery-3.3.1/jquery.min.js}"></script>
   <script type="text/javascript" th:src="@{/client/vendor/bootstrap-4.2.1/js/bootstrap.bundle.min.js}"></script>
   <script type="text/javascript" th:src="@{/client/vendor/owl-carousel-2.3.4/owl.carousel.min.js}"></script>
@@ -25,7 +25,7 @@
   <link rel="stylesheet" th:href="@{/client/vendor/fontawesome-5.6.1/css/all.min.css}">
   <!-- font - stroyka -->
   <link rel="stylesheet" th:href="@{/client/fonts/stroyka/stroyka.css}">
-  <script async="" src="https://www.googletagmanager.com/gtag/js?id=UA-97489509-6"></script>
+  <!--<script async="" src="https://www.googletagmanager.com/gtag/js?id=UA-97489509-6"></script>-->
   <script>
       window.dataLayer = window.dataLayer || [];
 
@@ -35,6 +35,57 @@
 
       gtag('js', new Date());
       gtag('config', 'UA-97489509-6');
+
+      $(function () {
+          let rootCategoryTree;
+          $.ajax({
+              url: "/api/category/get-root",
+              type: "POST",
+              dataType: "json",
+              success: function (respData) {
+                  $("#category-menu").append(showCategoryMenu(respData));
+              },
+              error: function (respData) {
+                  console.log("error: " + respData);
+              }
+          });
+      });
+
+      function showChildCates(cate) {
+          let txt = '';
+          if (cate.childCategories.length > 0) txt += '<ul class="menu menu--layout--classic">';
+          cate.childCategories.forEach(function (c) {
+              txt += '<li><a href="/category/' + c.code + '">' +
+                  c.name +
+                  '<svg class="menu__arrow" width="6px" height="9px">\n' +
+                  '<use xlink:href="/client/images/sprite.svg#arrow-rounded-right-6x9"></use>\n' +
+                  '</svg>' +
+                  '</a>' +
+                  '<div class="menu__submenu">' +
+                  showChildCates(c) +
+                  '</div></li>';
+          });
+          if (cate.childCategories.length > 0) txt += '</ul>';
+          return txt;
+      }
+
+      function showCategoryMenu(rootTree) {
+          let showChild = showChildCates;
+          let text = '';
+          rootTree.childCategories.forEach(function (category) {
+              text += ('<li class="departments__item departments__item--menu">' +
+                  '<a href="/category/' + category.code + '">' +
+                  category.name +
+                  ' <svg class="departments__link-arrow" width="6px" height="9px">\n' +
+                  '<use xlink:href="/client/images/sprite.svg#arrow-rounded-right-6x9"></use>\n' +
+                  '</svg>' +
+                  '</a>' +
+                  '<div class="departments__menu">' +
+                  showChild(category) +
+                  '</div></li>');
+          });
+          return text;
+      }
   </script>
   <style>
     .nav-link {
@@ -143,286 +194,7 @@
               <div id="category-menu-list" class="departments" data-departments-fixed-by="">
                 <div class="departments__body">
                   <div class="departments__links-wrapper">
-                    <ul class="departments__links">
-                      <li class="departments__item">
-                        <a href="#">
-                          Power Tools
-                          <svg class="departments__link-arrow" width="6px" height="9px">
-                            <use th:xlink:href="@{/client/images/sprite.svg#arrow-rounded-right-6x9}"></use>
-                          </svg>
-                        </a>
-                        <div class="departments__megamenu departments__megamenu--xl">
-                          <!-- .megamenu -->
-                          <div class="megamenu megamenu--departments"
-                               th:style="|background-image: url(@{/client/images/megamenu/megamenu-1.jpg});|">
-                            <div class="row">
-                              <div class="col-3">
-                                <ul class="megamenu__links megamenu__links--level--0">
-                                  <li class="megamenu__item megamenu__item--with-submenu"><a href="#">Power Tools</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Engravers</a></li>
-                                      <li class="megamenu__item"><a href="#">Drills</a></li>
-                                      <li class="megamenu__item"><a href="#">Wrenches</a></li>
-                                      <li class="megamenu__item"><a href="#">Plumbing</a></li>
-                                      <li class="megamenu__item"><a href="#">Wall Chaser</a></li>
-                                      <li class="megamenu__item"><a href="#">Pneumatic Tools</a></li>
-                                      <li class="megamenu__item"><a href="#">Milling Cutters</a></li>
-                                    </ul>
-                                  </li>
-                                  <li class="megamenu__item"><a href="#">Workbenches</a></li>
-                                  <li class="megamenu__item"><a href="#">Presses</a></li>
-                                  <li class="megamenu__item"><a href="#">Spray Guns</a></li>
-                                  <li class="megamenu__item"><a href="#">Riveters</a></li>
-                                </ul>
-                              </div>
-                              <div class="col-3">
-                                <ul class="megamenu__links megamenu__links--level--0">
-                                  <li class="megamenu__item megamenu__item--with-submenu"><a href="#">Hand Tools</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Screwdrivers</a></li>
-                                      <li class="megamenu__item"><a href="#">Handsaws</a></li>
-                                      <li class="megamenu__item"><a href="#">Knives</a></li>
-                                      <li class="megamenu__item"><a href="#">Axes</a></li>
-                                      <li class="megamenu__item"><a href="#">Multitools</a></li>
-                                      <li class="megamenu__item"><a href="#">Paint Tools</a></li>
-                                    </ul>
-                                  </li>
-                                  <li class="megamenu__item megamenu__item--with-submenu"><a href="#">Garden
-                                    Equipment</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Motor Pumps</a></li>
-                                      <li class="megamenu__item"><a href="#">Chainsaws</a></li>
-                                      <li class="megamenu__item"><a href="#">Electric Saws</a></li>
-                                      <li class="megamenu__item"><a href="#">Brush Cutters</a></li>
-                                    </ul>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div class="col-3">
-                                <ul class="megamenu__links megamenu__links--level--0">
-                                  <li class="megamenu__item megamenu__item--with-submenu">
-                                    <a href="#">MachineTools</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Thread Cutting</a></li>
-                                      <li class="megamenu__item"><a href="#">Chip Blowers</a></li>
-                                      <li class="megamenu__item"><a href="#">Sharpening Machines</a></li>
-                                      <li class="megamenu__item"><a href="#">Pipe Cutters</a></li>
-                                      <li class="megamenu__item"><a href="#">Slotting machines</a></li>
-                                      <li class="megamenu__item"><a href="#">Lathes</a></li>
-                                    </ul>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div class="col-3">
-                                <ul class="megamenu__links megamenu__links--level--0">
-                                  <li class="megamenu__item megamenu__item--with-submenu"><a href="#">Instruments</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Welding Equipment</a></li>
-                                      <li class="megamenu__item"><a href="#">Power Tools</a></li>
-                                      <li class="megamenu__item"><a href="#">Hand Tools</a></li>
-                                      <li class="megamenu__item"><a href="#">Measuring Tool</a></li>
-                                    </ul>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                          <!-- .megamenu / end -->
-                        </div>
-                      </li>
-                      <li class="departments__item">
-                        <a href="#">Hand Tools
-                          <svg class="departments__link-arrow" width="6px" height="9px">
-                            <use th:xlink:href="@{/client/images/sprite.svg#arrow-rounded-right-6x9}"></use>
-                          </svg>
-                        </a>
-                        <div class="departments__megamenu departments__megamenu--lg">
-                          <!-- .megamenu -->
-                          <div class="megamenu megamenu--departments"
-                               th:style="|background-image: url(@{/client/images/megamenu/megamenu-2.jpg});|">
-                            <div class="row">
-                              <div class="col-4">
-                                <ul class="megamenu__links megamenu__links--level--0">
-                                  <li class="megamenu__item megamenu__item--with-submenu"><a href="#">Hand Tools</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Screwdrivers</a></li>
-                                      <li class="megamenu__item"><a href="#">Handsaws</a></li>
-                                      <li class="megamenu__item"><a href="#">Knives</a></li>
-                                      <li class="megamenu__item"><a href="#">Axes</a></li>
-                                      <li class="megamenu__item"><a href="#">Multitools</a></li>
-                                      <li class="megamenu__item"><a href="#">Paint Tools</a></li>
-                                    </ul>
-                                  </li>
-                                  <li class="megamenu__item megamenu__item--with-submenu"><a href="#">Garden
-                                    Equipment</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Motor Pumps</a></li>
-                                      <li class="megamenu__item"><a href="#">Chainsaws</a></li>
-                                      <li class="megamenu__item"><a href="#">Electric Saws</a></li>
-                                      <li class="megamenu__item"><a href="#">Brush Cutters</a></li>
-                                    </ul>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div class="col-4">
-                                <ul class="megamenu__links megamenu__links--level--0">
-                                  <li class="megamenu__item megamenu__item--with-submenu"><a href="#">Machine
-                                    Tools</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Thread Cutting</a></li>
-                                      <li class="megamenu__item"><a href="#">Chip Blowers</a></li>
-                                      <li class="megamenu__item"><a href="#">Sharpening Machines</a></li>
-                                      <li class="megamenu__item"><a href="#">Pipe Cutters</a></li>
-                                      <li class="megamenu__item"><a href="#">Slotting machines</a></li>
-                                      <li class="megamenu__item"><a href="#">Lathes</a></li>
-                                    </ul>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div class="col-4">
-                                <ul class="megamenu__links megamenu__links--level--0">
-                                  <li class="megamenu__item megamenu__item--with-submenu"><a href="#">Instruments</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Welding Equipment</a></li>
-                                      <li class="megamenu__item"><a href="#">Power Tools</a></li>
-                                      <li class="megamenu__item"><a href="#">Hand Tools</a></li>
-                                      <li class="megamenu__item"><a href="#">Measuring Tool</a></li>
-                                    </ul>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                          <!-- .megamenu / end -->
-                        </div>
-                      </li>
-                      <li class="departments__item">
-                        <a href="#">Machine Tools
-                          <svg class="departments__link-arrow" width="6px" height="9px">
-                            <use th:xlink:href="@{/client/images/sprite.svg#arrow-rounded-right-6x9}"></use>
-                          </svg>
-                        </a>
-                        <div class="departments__megamenu departments__megamenu--nl">
-                          <!-- .megamenu -->
-                          <div class="megamenu megamenu--departments"
-                               th:style="|background-image: url(@{/client/images/megamenu/megamenu-3.jpg});|">
-                            <div class="row">
-                              <div class="col-6">
-                                <ul class="megamenu__links megamenu__links--level--0">
-                                  <li class="megamenu__item megamenu__item--with-submenu">
-                                    <a href="#">Hand Tools</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Screwdrivers</a></li>
-                                      <li class="megamenu__item"><a href="#">Handsaws</a></li>
-                                      <li class="megamenu__item"><a href="#">Knives</a></li>
-                                      <li class="megamenu__item"><a href="#">Axes</a></li>
-                                      <li class="megamenu__item"><a href="#">Multitools</a></li>
-                                      <li class="megamenu__item"><a href="#">Paint Tools</a></li>
-                                    </ul>
-                                  </li>
-                                  <li class="megamenu__item megamenu__item--with-submenu">
-                                    <a href="#">Garden Equipment</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Motor Pumps</a></li>
-                                      <li class="megamenu__item"><a href="#">Chainsaws</a></li>
-                                      <li class="megamenu__item"><a href="#">Electric Saws</a></li>
-                                      <li class="megamenu__item"><a href="#">Brush Cutters</a></li>
-                                    </ul>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div class="col-6">
-                                <ul class="megamenu__links megamenu__links--level--0">
-                                  <li class="megamenu__item megamenu__item--with-submenu">
-                                    <a href="#">Instruments</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Welding Equipment</a></li>
-                                      <li class="megamenu__item"><a href="#">Power Tools</a></li>
-                                      <li class="megamenu__item"><a href="#">Hand Tools</a></li>
-                                      <li class="megamenu__item"><a href="#">Measuring Tool</a></li>
-                                    </ul>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div><!-- .megamenu / end -->
-                        </div>
-                      </li>
-                      <li class="departments__item">
-                        <a href="#">Building Supplies
-                          <svg class="departments__link-arrow" width="6px" height="9px">
-                            <use th:xlink:href="@{/client/images/sprite.svg#arrow-rounded-right-6x9}"></use>
-                          </svg>
-                        </a>
-                        <div class="departments__megamenu departments__megamenu--sm">
-                          <!-- .megamenu -->
-                          <div class="megamenu megamenu--departments">
-                            <div class="row">
-                              <div class="col-12">
-                                <ul class="megamenu__links megamenu__links--level--0">
-                                  <li class="megamenu__item megamenu__item--with-submenu">
-                                    <a href="#">Hand Tools</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Screwdrivers</a></li>
-                                      <li class="megamenu__item"><a href="#">Handsaws</a></li>
-                                      <li class="megamenu__item"><a href="#">Knives</a></li>
-                                      <li class="megamenu__item"><a href="#">Axes</a></li>
-                                      <li class="megamenu__item"><a href="#">Multitools</a></li>
-                                      <li class="megamenu__item"><a href="#">Paint Tools</a></li>
-                                    </ul>
-                                  </li>
-                                  <li class="megamenu__item megamenu__item--with-submenu">
-                                    <a href="#">Garden Equipment</a>
-                                    <ul class="megamenu__links megamenu__links--level--1">
-                                      <li class="megamenu__item"><a href="#">Motor Pumps</a></li>
-                                      <li class="megamenu__item"><a href="#">Chainsaws</a></li>
-                                      <li class="megamenu__item"><a href="#">Electric Saws</a></li>
-                                      <li class="megamenu__item"><a href="#">Brush Cutters</a></li>
-                                    </ul>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                          <!-- .megamenu / end -->
-                        </div>
-                      </li>
-                      <li class="departments__item departments__item--menu">
-                        <a href="#">Electrical
-                          <svg class="departments__link-arrow" width="6px" height="9px">
-                            <use th:xlink:href="@{/client/images/sprite.svg#arrow-rounded-right-6x9}"></use>
-                          </svg>
-                        </a>
-                        <div class="departments__menu">
-                          <!-- .menu -->
-                          <ul class="menu menu--layout--classic">
-                            <li>
-                              <a href="#">Soldering Equipment
-                                <svg class="menu__arrow" width="6px" height="9px">
-                                  <use th:xlink:href="@{/client/images/sprite.svg#arrow-rounded-right-6x9}"></use>
-                                </svg>
-                              </a>
-                              <div class="menu__submenu">
-                                <!-- .menu -->
-                                <ul class="menu menu--layout--classic">
-                                  <li><a href="#">Soldering Station</a></li>
-                                  <li><a href="#">Soldering Dryers</a></li>
-                                  <li><a href="#">Gas Soldering Iron</a></li>
-                                  <li><a href="#">Electric Soldering Iron</a></li>
-                                </ul><!-- .menu / end -->
-                              </div>
-                            </li>
-                            <li><a href="#">Light Bulbs</a></li>
-                            <li><a href="#">Batteries</a></li>
-                            <li><a href="#">Light Fixtures</a></li>
-                            <li><a href="#">Warm Floor</a></li>
-                            <li><a href="#">Generators</a></li>
-                            <li><a href="#">UPS</a></li>
-                          </ul>
-                          <!-- .menu / end -->
-                        </div>
-                      </li>
-                      <li class="departments__item"><a href="#">Power Machinery</a></li>
+                    <ul id="category-menu" class="departments__links">
                     </ul>
                   </div>
                 </div>

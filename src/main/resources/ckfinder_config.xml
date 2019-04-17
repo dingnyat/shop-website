@@ -25,8 +25,8 @@
   Set the maximum size of uploaded images. If an uploaded image is larger, it
   gets scaled down proportionally. Set to 0 to disable this feature.
   -->
-  <imgWidth>1920</imgWidth>
-  <imgHeight>1080</imgHeight>
+  <imgWidth>700</imgWidth>
+  <imgHeight>700</imgHeight>
   <imgQuality>100</imgQuality>
   <!--
   See the following article for more details:

@@ -42,7 +42,6 @@
 
           languageUrl = function () {
               let locale = Cookies.get("current-locale");
-              console.log(locale);
               if (locale === 'vi') {
                   return "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Vietnamese.json";
               } else if (locale === 'en') {
@@ -54,8 +53,6 @@
               }
               return null;
           }();
-
-          console.log(languageUrl);
 
           table = $("#product-table").DataTable({
               processing: true,

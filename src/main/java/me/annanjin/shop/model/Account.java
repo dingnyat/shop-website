@@ -1,6 +1,6 @@
 package me.annanjin.shop.model;
 
-import com.google.gson.annotations.Expose;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Set;
@@ -16,7 +16,7 @@ public class Account extends CommonModel<Integer> {
     private String avatarUrl;
     private Set<Role> roles;
     private boolean enabled;
-    @Expose(serialize = false)
+    @JsonIgnore
     private MultipartFile multipartFile;
 
     public Account() {
