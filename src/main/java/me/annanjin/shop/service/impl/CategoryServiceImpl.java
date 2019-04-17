@@ -17,4 +17,9 @@ public class CategoryServiceImpl extends ServiceAbstract<Integer, Category, Cate
     public CategoryServiceImpl(@Autowired CategoryDAO repository, @Autowired BeanTools beanTools) {
         super(repository, beanTools);
     }
+
+    @Override
+    public Category getByCode(String code) {
+        return beanTools.map(repository.getByCode(code), new Category());
+    }
 }

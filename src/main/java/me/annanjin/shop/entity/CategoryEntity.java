@@ -12,16 +12,16 @@ public class CategoryEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "code", nullable = false, unique = true, length = 16)
+    @Column(name = "code", nullable = false, unique = true, length = 100)
     private String code;
 
-    @Column(name = "name", nullable = false, unique = true, length = 64)
+    @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "parent_child_category",
-            joinColumns = @JoinColumn(name = "child_category_id"),
-            inverseJoinColumns = @JoinColumn(name = "parent_category_id"),
+            joinColumns = @JoinColumn(name = "parent_category_id"),
+            inverseJoinColumns = @JoinColumn(name = "child_category_id"),
             uniqueConstraints = @UniqueConstraint(columnNames = {"child_category_id", "parent_category_id"}))
     private Set<CategoryEntity> childCategories;
 
@@ -34,10 +34,9 @@ public class CategoryEntity {
     public CategoryEntity() {
     }
 
-    public CategoryEntity(String code, String name, Set<ProductEntity> products) {
+    public CategoryEntity(String code, String name) {
         this.code = code;
         this.name = name;
-        this.products = products;
     }
 
     public int getId() {
@@ -70,5 +69,21 @@ public class CategoryEntity {
 
     public void setProducts(Set<ProductEntity> products) {
         this.products = products;
+    }
+
+    public Set<CategoryEntity> getChildCategories() {
+        return childCategories;
+    }
+
+    public void setChildCategories(Set<CategoryEntity> childCategories) {
+        this.childCategories = childCategories;
+    }
+
+    public Set<CategoryEntity> getParentCategories() {
+        return parentCategories;
+    }
+
+    public void setParentCategories(Set<CategoryEntity> parentCategories) {
+        this.parentCategories = parentCategories;
     }
 }

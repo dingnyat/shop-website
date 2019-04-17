@@ -3,6 +3,8 @@ package me.annanjin.shop.controller.api;
 import me.annanjin.shop.model.Category;
 import me.annanjin.shop.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,17 +41,28 @@ public class CategoryAPIController {
     }
 
     @GetMapping("/admin/category/{id}")
-    Category getCategory(@PathVariable("id") int id) {
+    public Category getCategory(@PathVariable("id") int id) {
         return categoryService.getById(id);
     }
 
     @GetMapping("/admin/category/delete/{id}")
-    String deleteCategory(@PathVariable("id") int id) {
+    public String deleteCategory(@PathVariable("id") int id) {
         try {
             categoryService.delete(id);
             return "Successfully!";
         } catch (Exception e) {
             return "Failed!";
         }
+    }
+
+    @PostMapping("/api/category/get-root")
+    public ResponseEntity<?> rootCategory() {
+        Category category;
+        try {
+            category = categoryService.getById(7);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Failed", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(category, HttpStatus.OK);
     }
 }

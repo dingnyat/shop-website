@@ -1,6 +1,5 @@
 package me.annanjin.shop.controller.api;
 
-import com.google.gson.Gson;
 import me.annanjin.shop.model.Cart;
 import me.annanjin.shop.service.AccountService;
 import me.annanjin.shop.service.CartItemService;

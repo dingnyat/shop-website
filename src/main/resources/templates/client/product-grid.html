@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org" layout:decorate="~{client/layout}">
+<head>
+  <title th:text="${category.name}">Products</title>
+  <script>
+      let currPage = 1;
+      let numberOfPages = 0;
+
+      $(function () {
+          getProducts();
+          $("#order-product-by").on("change", function () {
+              currPage = 1;
+              getProducts();
+          });
+          $("#show-product-length").on("change", function () {
+              currPage = 1;
+              getProducts();
+          });
+      });
+
+      function getProducts() {
+          let length = $("#show-product-length").val();
+          let requestData = {
+              length: length,
+              start: (currPage - 1) * length,
+              order: function () {
+                  let s = $("#order-product-by").val();
+                  if (s === "name_asc") return {property: "name", direction: "ASC"};
+                  else if (s === "name_desc") return {property: "name", direction: "DESC"};
+                  else if (s === "price_asc") return {property: "price", direction: "ASC"};
+                  else if (s === "price_desc") return {property: "price", direction: "DESC"};
+              }()
+          };
+          $.ajax({
+              url: "/api" + location.pathname,
+              type: "POST",
+              dataType: "json",
+              contentType: "application/json",
+              data: JSON.stringify(requestData),
+              success: function (respData) {
+                  showProductItems(respData);
+              }
+          });
+      }
+
+      function showProductItems(data) {
+          // show pagination
+          $(".pagination").html('<li id="previous-page-btn" onclick="shiftPage(\'previous\')" class="page-item disabled">\n' +
+              '                  <a class="page-link page-link--with-arrow"  aria-label="Previous">\n' +
+              '                    <svg class="page-link__arrow page-link__arrow--left" aria-hidden="true" width="8px" height="13px">\n' +
+              '                      <use xlink:href="/client/images/sprite.svg#arrow-rounded-left-8x13"></use>\n' +
+              '                    </svg>\n' +
+              '                  </a>\n' +
+              '                </li>\n' +
+              '                <li id="next-page-btn" onclick="shiftPage(\'next\')" class="page-item">\n' +
+              '                  <a class="page-link page-link--with-arrow"  aria-label="Next">\n' +
+              '                    <svg class="page-link__arrow page-link__arrow--right" aria-hidden="true" width="8px" height="13px">\n' +
+              '                      <use xlink:href="/client/images/sprite.svg#arrow-rounded-right-8x13"></use>\n' +
+              '                    </svg>\n' +
+              '                  </a>\n' +
+              '                </li>');
+          numberOfPages = data.recordsFiltered !== 0 ? Math.round(data.recordsTotal / data.recordsFiltered) : 0;
+          if (currPage === 1) {
+              $("#next-page-btn").removeClass("disabled");
+              $("#previous-page-btn").addClass("disabled");
+          } else if (currPage === numberOfPages - 1) {
+              $("#previous-page-btn").removeClass("disabled");
+              $("#next-page-btn").addClass("disabled");
+          } else {
+              $("#previous-page-btn").removeClass("disabled");
+              $("#next-page-btn").removeClass("disabled");
+          }
+          if (numberOfPages <= 1) {
+              $("#previous-page-btn").addClass("disabled");
+              $("#next-page-btn").addClass("disabled");
+          }
+          if (numberOfPages === 1) {
+              $("#previous-page-btn").after(
+                  '<li class="page-item active" onclick="setCurrPage(this)">\n' +
+                  '<a class="page-link">1</a>\n' +
+                  '</li>'
+              );
+          } else if (numberOfPages > 1) {
+              let text = '';
+              if (currPage - 1 >= 3) {
+                  text += '<li class="page-item" onclick="setCurrPage(this)">\n' + '<a class="page-link" >1</a>\n' + '</li>';
+                  text += '<li class="page-item disabled">\n' + '<a class="page-link" >...</a>\n' + '</li>';
+                  text += '<li class="page-item" onclick="setCurrPage(this)">\n' + '<a class="page-link" >' + (currPage - 1) + '</a>\n' + '</li>';
+              } else {
+                  for (let i = 1; i < currPage; i++) {
+                      text += '<li class="page-item" onclick="setCurrPage(this)">\n' + '<a class="page-link" >' + i + '</a>\n' + '</li>';
+                  }
+              }
+              text += '<li class="page-item active" onclick="setCurrPage(this)">\n' + '<a class="page-link" >' + currPage + '</a>\n' + '</li>';
+              if (numberOfPages - currPage >= 3) {
+                  text += '<li class="page-item" onclick="setCurrPage(this)">\n' + '<a class="page-link" >' + (currPage + 1) + '</a>\n' + '</li>';
+                  text += '<li class="page-item disabled">\n' + '<a class="page-link" >...</a>\n' + '</li>';
+                  text += '<li class="page-item" onclick="setCurrPage(this)">\n' + '<a class="page-link" >' + numberOfPages + '</a>\n' + '</li>';
+              } else {
+                  for (let i = currPage + 1; i < numberOfPages; i++) {
+                      text += '<li class="page-item" onclick="setCurrPage(this)">\n' + '<a class="page-link" >' + i + '</a>\n' + '</li>';
+                  }
+              }
+              $("#previous-page-btn").after(text);
+          }
+          // show products
+          let $sample = $("#sample-product-item").clone();
+          $sample.attr("style", "");
+          let $product_list_body = $(".products-list__body");
+          $product_list_body.html("");
+          data.results.forEach(function (value) {
+              let productDOM = $sample.clone();
+              productDOM.find(".product-card__name a").html(value.name);
+              productDOM.find(".product-card__name a").attr("href", "/product/" + value.id);
+              productDOM.find(".product-card__prices").html("$" + value.price);
+              productDOM.find(".product-card__image a img").attr("src", value.thumbnailUrl);
+              productDOM.find(".product-card__image a img").attr("style", "max-height: 90%");
+              productDOM.find(".product-card__image a").attr("href", "/product/" + value.id);
+              $product_list_body.append(productDOM);
+          });
+          $(".view-options__legend").html("Showing " + data.recordsFiltered + " of " + data.recordsTotal + " products");
+      }
+
+      function setCurrPage(pageItem) {
+          currPage = parseInt($(pageItem).find(".page-link").html());
+          getProducts();
+          goToByScroll("product-view-scroll-up-point");
+      }
+
+      function shiftPage(dir) {
+          if (dir === "previous") {
+              currPage = currPage > 1 ? currPage - 1 : currPage;
+          } else {
+              currPage = currPage < numberOfPages ? currPage + 1 : currPage;
+          }
+          getProducts();
+          goToByScroll("product-view-scroll-up-point");
+      }
+
+      function goToByScroll(id) {
+          // Reove "link" from the ID
+          id = id.replace("link", "");
+          // Scroll
+          $('html,body').animate(
+              {
+                  scrollTop: $("#" + id).offset().top
+              },
+              'slow'
+          );
+      }
+  </script>
+</head>
+<body>
+<section layout:fragment="site_section">
+  <div id="product-view-scroll-up-point" class="page-header">
+    <div class="page-header__container container">
+      <div class="page-header__breadcrumb">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/}">Home</a>
+              <svg class="breadcrumb-arrow" width="6px" height="9px">
+                <use th:xlink:href="@{/client/images/sprite.svg#arrow-rounded-right-6x9}"></use>
+              </svg>
+            </li>
+            <li class="breadcrumb-item active"><a th:href="'/category/' + ${category.code}"
+                                                  th:text="${category.name}"></a>
+              <svg class="breadcrumb-arrow" width="6px" height="9px">
+                <use th:xlink:href="@{/client/images/sprite.svg#arrow-rounded-right-6x9}"></use>
+              </svg>
+            </li>
+          </ol>
+        </nav>
+      </div>
+      <div class="page-header__title"><h1 th:text="${category.name}"></h1></div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="shop-layout shop-layout--sidebar--start">
+      <div class="shop-layout__sidebar">
+        <div class="block block-sidebar">
+          <div class="block-sidebar__item">
+            <div class="widget-filters widget" data-collapse="" data-collapse-opened-class="filter--opened"><h4
+                    class="widget__title">Filters</h4>
+              <div class="widget-filters__list">
+                <div class="widget-filters__item">
+                  <div class="filter filter--opened" data-collapse-item="">
+                    <button type="button" class="filter__title" data-collapse-trigger="">Categories
+                      <svg class="filter__arrow" width="12px" height="7px">
+                        <use xlink:href="images/sprite.svg#arrow-rounded-down-12x7"></use>
+                      </svg>
+                    </button>
+                    <div class="filter__body" data-collapse-content="">
+                      <div class="filter__container">
+                        <div class="filter-categories">
+                          <ul class="filter-categories__list">
+                            <li class="filter-categories__item filter-categories__item--parent">
+                              <svg class="filter-categories__arrow" width="6px" height="9px">
+                                <use xlink:href="images/sprite.svg#arrow-rounded-left-6x9"></use>
+                              </svg>
+                              <a href="#">Construction &amp; Repair</a>
+                              <div class="filter-categories__counter">254</div>
+                            </li>
+                            <li class="filter-categories__item filter-categories__item--parent">
+                              <svg class="filter-categories__arrow" width="6px" height="9px">
+                                <use xlink:href="images/sprite.svg#arrow-rounded-left-6x9"></use>
+                              </svg>
+                              <a href="#">Instruments</a>
+                              <div class="filter-categories__counter">75</div>
+                            </li>
+                            <li class="filter-categories__item filter-categories__item--current"><a href="#">Power
+                              Tools</a>
+                              <div class="filter-categories__counter">21</div>
+                            </li>
+                            <li class="filter-categories__item filter-categories__item--child"><a href="#">Drills &amp;
+                              Mixers</a>
+                              <div class="filter-categories__counter">15</div>
+                            </li>
+                            <li class="filter-categories__item filter-categories__item--child"><a href="#">Cordless
+                              Screwdrivers</a>
+                              <div class="filter-categories__counter">2</div>
+                            </li>
+                            <li class="filter-categories__item filter-categories__item--child"><a
+                                    href="#">Screwdrivers</a>
+                              <div class="filter-categories__counter">30</div>
+                            </li>
+                            <li class="filter-categories__item filter-categories__item--child"><a href="#">Wrenches</a>
+                              <div class="filter-categories__counter">7</div>
+                            </li>
+                            <li class="filter-categories__item filter-categories__item--child"><a href="#">Grinding
+                              Machines</a>
+                              <div class="filter-categories__counter">5</div>
+                            </li>
+                            <li class="filter-categories__item filter-categories__item--child"><a href="#">Milling
+                              Cutters</a>
+                              <div class="filter-categories__counter">2</div>
+                            </li>
+                            <li class="filter-categories__item filter-categories__item--child"><a href="#">Electric
+                              Spray Guns</a>
+                              <div class="filter-categories__counter">9</div>
+                            </li>
+                            <li class="filter-categories__item filter-categories__item--child"><a href="#">Jigsaws</a>
+                              <div class="filter-categories__counter">4</div>
+                            </li>
+                            <li class="filter-categories__item filter-categories__item--child"><a
+                                    href="#">Jackhammers</a>
+                              <div class="filter-categories__counter">0</div>
+                            </li>
+                            <li class="filter-categories__item filter-categories__item--child"><a href="#">Planers</a>
+                              <div class="filter-categories__counter">12</div>
+                            </li>
+                            <li class="filter-categories__item filter-categories__item--child"><a href="#">Glue Guns</a>
+                              <div class="filter-categories__counter">7</div>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="widget-filters__item">
+                  <div class="filter filter--opened" data-collapse-item="">
+                    <button type="button" class="filter__title" data-collapse-trigger="">Price
+                      <svg class="filter__arrow" width="12px" height="7px">
+                        <use xlink:href="images/sprite.svg#arrow-rounded-down-12x7"></use>
+                      </svg>
+                    </button>
+                    <div class="filter__body" data-collapse-content="">
+                      <div class="filter__container">
+                        <div class="filter-price" data-min="500" data-max="1500" data-from="590" data-to="1130">
+                          <div class="filter-price__slider noUi-target noUi-ltr noUi-horizontal">
+                            <!--<div class="noUi-base">
+                              <div class="noUi-connects">
+                                <div class="noUi-connect" style="transform: translate(9%) scale(0.54, 1);"></div>
+                              </div>
+                              <div class="noUi-origin" style="transform: translate(-91%); z-index: 5;">
+                                <div class="noUi-handle noUi-handle-lower" data-handle="0" tabindex="0" role="slider"
+                                     aria-orientation="horizontal" aria-valuemin="500.0" aria-valuemax="1130.0"
+                                     aria-valuenow="590.0" aria-valuetext="590.00"></div>
+                              </div>
+                              <div class="noUi-origin" style="transform: translate(-37%); z-index: 4;">
+                                <div class="noUi-handle noUi-handle-upper" data-handle="1" tabindex="0" role="slider"
+                                     aria-orientation="horizontal" aria-valuemin="590.0" aria-valuemax="1500.0"
+                                     aria-valuenow="1130.0" aria-valuetext="1130.00"></div>
+                              </div>
+                            </div>-->
+                          </div>
+                          <div class="filter-price__title">Price: $<span class="filter-price__min-value">590.00</span> –
+                            $<span class="filter-price__max-value">1130.00</span></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="widget-filters__item">
+                  <div class="filter filter--opened" data-collapse-item="">
+                    <button type="button" class="filter__title" data-collapse-trigger="">Brand
+                      <svg class="filter__arrow" width="12px" height="7px">
+                        <use xlink:href="images/sprite.svg#arrow-rounded-down-12x7"></use>
+                      </svg>
+                    </button>
+                    <div class="filter__body" data-collapse-content="">
+                      <div class="filter__container">
+                        <div class="filter-list">
+                          <div class="filter-list__list"><label class="filter-list__item"><span
+                                  class="filter-list__input input-check"><span class="input-check__body"><input
+                                  class="input-check__input" type="checkbox"> <span class="input-check__box"></span> <svg
+                                  class="input-check__icon" width="9px" height="7px"><use
+                                  xlink:href="images/sprite.svg#check-9x7"></use></svg> </span></span><span
+                                  class="filter-list__title">Wakita </span><span
+                                  class="filter-list__counter">7</span></label> <label class="filter-list__item"><span
+                                  class="filter-list__input input-check"><span class="input-check__body"><input
+                                  class="input-check__input" type="checkbox" checked="checked"> <span
+                                  class="input-check__box"></span> <svg class="input-check__icon" width="9px"
+                                                                        height="7px"><use
+                                  xlink:href="images/sprite.svg#check-9x7"></use></svg> </span></span><span
+                                  class="filter-list__title">Zosch </span><span
+                                  class="filter-list__counter">42</span></label> <label
+                                  class="filter-list__item filter-list__item--disabled"><span
+                                  class="filter-list__input input-check"><span class="input-check__body"><input
+                                  class="input-check__input" type="checkbox" checked="checked"
+                                  disabled="disabled"> <span class="input-check__box"></span> <svg
+                                  class="input-check__icon" width="9px" height="7px"><use
+                                  xlink:href="images/sprite.svg#check-9x7"></use></svg> </span></span><span
+                                  class="filter-list__title">WeVALT</span></label> <label
+                                  class="filter-list__item filter-list__item--disabled"><span
+                                  class="filter-list__input input-check"><span class="input-check__body"><input
+                                  class="input-check__input" type="checkbox" disabled="disabled"> <span
+                                  class="input-check__box"></span> <svg class="input-check__icon" width="9px"
+                                                                        height="7px"><use
+                                  xlink:href="images/sprite.svg#check-9x7"></use></svg> </span></span><span
+                                  class="filter-list__title">Hammer</span></label> <label
+                                  class="filter-list__item"><span class="filter-list__input input-check"><span
+                                  class="input-check__body"><input class="input-check__input" type="checkbox"> <span
+                                  class="input-check__box"></span> <svg class="input-check__icon" width="9px"
+                                                                        height="7px"><use
+                                  xlink:href="images/sprite.svg#check-9x7"></use></svg> </span></span><span
+                                  class="filter-list__title">Mitasia </span><span class="filter-list__counter">1</span></label>
+                            <label class="filter-list__item"><span class="filter-list__input input-check"><span
+                                    class="input-check__body"><input class="input-check__input" type="checkbox"> <span
+                                    class="input-check__box"></span> <svg class="input-check__icon" width="9px"
+                                                                          height="7px"><use
+                                    xlink:href="images/sprite.svg#check-9x7"></use></svg> </span></span><span
+                                    class="filter-list__title">Metaggo </span><span
+                                    class="filter-list__counter">25</span></label></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="widget-filters__item">
+                  <div class="filter filter--opened" data-collapse-item="">
+                    <button type="button" class="filter__title" data-collapse-trigger="">Brand
+                      <svg class="filter__arrow" width="12px" height="7px">
+                        <use xlink:href="images/sprite.svg#arrow-rounded-down-12x7"></use>
+                      </svg>
+                    </button>
+                    <div class="filter__body" data-collapse-content="">
+                      <div class="filter__container">
+                        <div class="filter-list">
+                          <div class="filter-list__list"><label class="filter-list__item"><span
+                                  class="filter-list__input input-radio"><span class="input-radio__body"><input
+                                  class="input-radio__input" name="filter_radio" type="radio"> <span
+                                  class="input-radio__circle"></span> </span></span><span class="filter-list__title">Wakita </span><span
+                                  class="filter-list__counter">7</span></label> <label class="filter-list__item"><span
+                                  class="filter-list__input input-radio"><span class="input-radio__body"><input
+                                  class="input-radio__input" name="filter_radio" type="radio"> <span
+                                  class="input-radio__circle"></span> </span></span><span class="filter-list__title">Zosch </span><span
+                                  class="filter-list__counter">42</span></label> <label
+                                  class="filter-list__item filter-list__item--disabled"><span
+                                  class="filter-list__input input-radio"><span class="input-radio__body"><input
+                                  class="input-radio__input" name="filter_radio" type="radio" checked="checked"
+                                  disabled="disabled"> <span class="input-radio__circle"></span> </span></span><span
+                                  class="filter-list__title">WeVALT</span></label> <label
+                                  class="filter-list__item filter-list__item--disabled"><span
+                                  class="filter-list__input input-radio"><span class="input-radio__body"><input
+                                  class="input-radio__input" name="filter_radio" type="radio" disabled="disabled"> <span
+                                  class="input-radio__circle"></span> </span></span><span class="filter-list__title">Hammer</span></label>
+                            <label class="filter-list__item"><span class="filter-list__input input-radio"><span
+                                    class="input-radio__body"><input class="input-radio__input" name="filter_radio"
+                                                                     type="radio"> <span
+                                    class="input-radio__circle"></span> </span></span><span class="filter-list__title">Mitasia </span><span
+                                    class="filter-list__counter">1</span></label> <label class="filter-list__item"><span
+                                    class="filter-list__input input-radio"><span class="input-radio__body"><input
+                                    class="input-radio__input" name="filter_radio" type="radio"> <span
+                                    class="input-radio__circle"></span> </span></span><span class="filter-list__title">Metaggo </span><span
+                                    class="filter-list__counter">25</span></label></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="widget-filters__item">
+                  <div class="filter filter--opened" data-collapse-item="">
+                    <button type="button" class="filter__title" data-collapse-trigger="">Color
+                      <svg class="filter__arrow" width="12px" height="7px">
+                        <use xlink:href="images/sprite.svg#arrow-rounded-down-12x7"></use>
+                      </svg>
+                    </button>
+                    <div class="filter__body" data-collapse-content="">
+                      <div class="filter__container">
+                        <div class="filter-color">
+                          <div class="filter-color__list"><label class="filter-color__item"><span
+                                  class="filter-color__check input-check-color input-check-color--white"
+                                  style="color: #fff;"><label class="input-check-color__body"><input
+                                  class="input-check-color__input" type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span
+                                  class="filter-color__check input-check-color input-check-color--light"
+                                  style="color: #d9d9d9;"><label class="input-check-color__body"><input
+                                  class="input-check-color__input" type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #b3b3b3;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #808080;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #666;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #4d4d4d;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #262626;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #ff4040;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox" checked="checked"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #ff8126;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span
+                                  class="filter-color__check input-check-color input-check-color--light"
+                                  style="color: #ffd440;"><label class="input-check-color__body"><input
+                                  class="input-check-color__input" type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span
+                                  class="filter-color__check input-check-color input-check-color--light"
+                                  style="color: #becc1f;"><label class="input-check-color__body"><input
+                                  class="input-check-color__input" type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #8fcc14;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox" checked="checked"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #47cc5e;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #47cca0;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #47cccc;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #40bfff;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox" disabled="disabled"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #3d6dcc;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox" checked="checked"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #7766cc;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #b852cc;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label> <label
+                                  class="filter-color__item"><span class="filter-color__check input-check-color"
+                                                                   style="color: #e53981;"><label
+                                  class="input-check-color__body"><input class="input-check-color__input"
+                                                                         type="checkbox"> <span
+                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
+                                                                              width="12px" height="9px"><use
+                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
+                                  class="input-check-color__stick"></span></label></span></label></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="widget-filters__actions d-flex">
+                <button class="btn btn-primary btn-sm">Filter</button>
+                <button class="btn btn-secondary btn-sm ml-2">Reset</button>
+              </div>
+            </div>
+          </div>
+          <div class="block-sidebar__item d-none d-lg-block">
+            <div class="widget-products widget"><h4 class="widget__title">Latest Products</h4>
+              <div class="widget-products__list">
+                <div class="widget-products__item">
+                  <div class="widget-products__image"><a href="product.html"><img src="images/products/product-1.jpg"
+                                                                                  alt=""></a></div>
+                  <div class="widget-products__info">
+                    <div class="widget-products__name"><a href="product.html">Electric Planer Brandix KL370090G 300
+                      Watts</a></div>
+                    <div class="widget-products__prices">$749.00</div>
+                  </div>
+                </div>
+                <div class="widget-products__item">
+                  <div class="widget-products__image"><a href="product.html"><img src="images/products/product-2.jpg"
+                                                                                  alt=""></a></div>
+                  <div class="widget-products__info">
+                    <div class="widget-products__name"><a href="product.html">Undefined Tool IRadix DPS3000SY 2700
+                      Watts</a></div>
+                    <div class="widget-products__prices">$1,019.00</div>
+                  </div>
+                </div>
+                <div class="widget-products__item">
+                  <div class="widget-products__image"><a href="product.html"><img src="images/products/product-3.jpg"
+                                                                                  alt=""></a></div>
+                  <div class="widget-products__info">
+                    <div class="widget-products__name"><a href="product.html">Drill Screwdriver Brandix ALX7054 200
+                      Watts</a></div>
+                    <div class="widget-products__prices">$850.00</div>
+                  </div>
+                </div>
+                <div class="widget-products__item">
+                  <div class="widget-products__image"><a href="product.html"><img src="images/products/product-4.jpg"
+                                                                                  alt=""></a></div>
+                  <div class="widget-products__info">
+                    <div class="widget-products__name"><a href="product.html">Drill Series 3 Brandix KSR4590PQS 1500
+                      Watts</a></div>
+                    <div class="widget-products__prices"><span class="widget-products__new-price">$949.00</span> <span
+                            class="widget-products__old-price">$1189.00</span></div>
+                  </div>
+                </div>
+                <div class="widget-products__item">
+                  <div class="widget-products__image"><a href="product.html"><img src="images/products/product-5.jpg"
+                                                                                  alt=""></a></div>
+                  <div class="widget-products__info">
+                    <div class="widget-products__name"><a href="product.html">Brandix Router Power Tool 2017ERXPK</a>
+                    </div>
+                    <div class="widget-products__prices">$1,700.00</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="shop-layout__content">
+        <div class="block">
+          <div class="products-view">
+            <div class="products-view__options">
+              <div class="view-options">
+                <div class="view-options__layout">
+                  <div class="layout-switcher">
+                    <div class="layout-switcher__list">
+                      <button data-layout="grid-3-sidebar" data-with-features="false" title="Grid" type="button"
+                              class="layout-switcher__button layout-switcher__button--active">
+                        <svg width="16px" height="16px">
+                          <use th:xlink:href="@{/client/images/sprite.svg#layout-grid-16x16}"></use>
+                        </svg>
+                      </button>
+                      <button data-layout="grid-3-sidebar" data-with-features="true" title="Grid With Features"
+                              type="button" class="layout-switcher__button">
+                        <svg width="16px" height="16px">
+                          <use th:xlink:href="@{/client/images/sprite.svg#layout-grid-with-details-16x16}"></use>
+                        </svg>
+                      </button>
+                      <button data-layout="list" data-with-features="false" title="List" type="button"
+                              class="layout-switcher__button">
+                        <svg width="16px" height="16px">
+                          <use th:xlink:href="@{/client/images/sprite.svg#layout-list-16x16}"></use>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="view-options__legend">Showing 6 of 98 products</div>
+                <div class="view-options__divider"></div>
+                <div class="view-options__control">
+                  <label for="order-product-by">Sort By</label>
+                  <div>
+                    <select class="form-control form-control-sm" name="" id="order-product-by">
+                      <option value="name_asc">Default</option>
+                      <option value="name_asc">Name (A-Z)</option>
+                      <option value="name_desc">Name (Z-A)</option>
+                      <option value="price_asc">Price (low to high)</option>
+                      <option value="price_desc">Price (high to low)</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="view-options__control">
+                  <label for="show-product-length">Show</label>
+                  <div>
+                    <select class="form-control form-control-sm" name="" id="show-product-length">
+                      <option value="12">12</option>
+                      <option value="24">24</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="products-view__list products-list" data-layout="grid-3-sidebar" data-with-features="false">
+              <div class="products-list__body">
+                <div id="sample-product-item" style="display: none;" class="products-list__item">
+                  <div class="product-card">
+                    <button class="product-card__quickview" type="button">
+                      <svg width="16px" height="16px">
+                        <use th:xlink:href="@{/client/images/sprite.svg#quickview-16}"></use>
+                      </svg>
+                      <span class="fake-svg-icon"></span>
+                    </button>
+                    <div class="product-card__image">
+                      <a href="#">
+                        <!--link to product thumbail-->
+                        <img alt="" src="">
+                      </a>
+                    </div>
+                    <div class="product-card__info">
+                      <div class="product-card__name">
+                        <a href="#">Product Name</a>
+                      </div>
+                      <div class="product-card__rating">
+                        <div class="rating">
+                          <div class="rating__body">
+                            <svg class="rating__star rating__star--active" width="13px" height="12px">
+                              <g class="rating__fill">
+                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal}"></use>
+                              </g>
+                              <g class="rating__stroke">
+                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal-stroke}"></use>
+                              </g>
+                            </svg>
+                            <div class="rating__star rating__star--only-edge rating__star--active">
+                              <div class="rating__fill">
+                                <div class="fake-svg-icon"></div>
+                              </div>
+                              <div class="rating__stroke">
+                                <div class="fake-svg-icon"></div>
+                              </div>
+                            </div>
+                            <svg class="rating__star rating__star--active" width="13px" height="12px">
+                              <g class="rating__fill">
+                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal}"></use>
+                              </g>
+                              <g class="rating__stroke">
+                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal-stroke}"></use>
+                              </g>
+                            </svg>
+                            <div class="rating__star rating__star--only-edge rating__star--active">
+                              <div class="rating__fill">
+                                <div class="fake-svg-icon"></div>
+                              </div>
+                              <div class="rating__stroke">
+                                <div class="fake-svg-icon"></div>
+                              </div>
+                            </div>
+                            <svg class="rating__star rating__star--active" width="13px" height="12px">
+                              <g class="rating__fill">
+                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal}"></use>
+                              </g>
+                              <g class="rating__stroke">
+                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal-stroke}"></use>
+                              </g>
+                            </svg>
+                            <div class="rating__star rating__star--only-edge rating__star--active">
+                              <div class="rating__fill">
+                                <div class="fake-svg-icon"></div>
+                              </div>
+                              <div class="rating__stroke">
+                                <div class="fake-svg-icon"></div>
+                              </div>
+                            </div>
+                            <svg class="rating__star rating__star--active" width="13px" height="12px">
+                              <g class="rating__fill">
+                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal}"></use>
+                              </g>
+                              <g class="rating__stroke">
+                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal-stroke}"></use>
+                              </g>
+                            </svg>
+                            <div class="rating__star rating__star--only-edge rating__star--active">
+                              <div class="rating__fill">
+                                <div class="fake-svg-icon"></div>
+                              </div>
+                              <div class="rating__stroke">
+                                <div class="fake-svg-icon"></div>
+                              </div>
+                            </div>
+                            <svg class="rating__star" width="13px" height="12px">
+                              <g class="rating__fill">
+                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal}"></use>
+                              </g>
+                              <g class="rating__stroke">
+                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal-stroke}"></use>
+                              </g>
+                            </svg>
+                            <div class="rating__star rating__star--only-edge">
+                              <div class="rating__fill">
+                                <div class="fake-svg-icon"></div>
+                              </div>
+                              <div class="rating__stroke">
+                                <div class="fake-svg-icon"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="product-card__rating-legend">9 Reviews</div>
+                      </div>
+                      <ul class="product-card__features-list">
+                        <li><span class="ml-3">Speed: 750 RPM</span></li>
+                        <li><span class="ml-3">Speed: 750 RPM</span></li>
+                        <li><span class="ml-3">Speed: 750 RPM</span></li>
+                      </ul>
+                    </div>
+                    <div class="product-card__actions">
+                      <div class="product-card__availability">Availability: <span class="text-success">In Stock</span>
+                      </div>
+                      <div class="product-card__prices">$$Price</div>
+                      <div class="product-card__buttons">
+                        <button class="btn btn-primary product-card__addtocart" type="button">Add To Cart</button>
+                        <button class="btn btn-secondary product-card__addtocart product-card__addtocart--list"
+                                type="button">
+                          Add To Cart
+                        </button>
+                        <button class="btn btn-light btn-svg-icon btn-svg-icon--fake-svg product-card__wishlist"
+                                type="button">
+                          <svg width="16px" height="16px">
+                            <use th:xlink:href="@{/client/images/sprite.svg#wishlist-16}"></use>
+                          </svg>
+                          <span class="fake-svg-icon fake-svg-icon--wishlist-16"></span></button>
+                        <button class="btn btn-light btn-svg-icon btn-svg-icon--fake-svg product-card__compare"
+                                type="button">
+                          <svg width="16px" height="16px">
+                            <use th:xlink:href="@{/client/images/sprite.svg#compare-16}"></use>
+                          </svg>
+                          <span class="fake-svg-icon fake-svg-icon--compare-16"></span></button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="products-view__pagination">
+              <ul class="pagination justify-content-center">
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--<div id="quickview-modal" class="modal fade" tabindex="-1" role="dialog"
+       style="display: block; padding-right: 17px;" aria-modal="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+      <div class="modal-content">
+        <div class="quickview">
+          <button class="quickview__close" type="button">
+            <svg width="20px" height="20px">
+              <use xlink:href="images/sprite.svg#cross-20"></use>
+            </svg>
+          </button>
+          <div class="product product&#45;&#45;layout&#45;&#45;quickview" data-layout="quickview">
+            <div class="product__content">&lt;!&ndash; .product__gallery &ndash;&gt;
+              <div class="product__gallery">
+                <div class="product-gallery">
+                  <div class="product-gallery__featured">
+                    <div class="owl-carousel owl-loaded owl-drag" id="product-image">
+                      <div class="owl-stage-outer">
+                        <div class="owl-stage"
+                             style="transform: translate3d(0px, 0px, 0px); transition: all 0s ease 0s; width: 2430px;">
+                          <div class="owl-item active" style="width: 486px;"><a href="images/products/product-16"
+                                                                                target="_blank"><img
+                                  src="images/products/product-16.jpg" alt=""> </a></div>
+                          <div class="owl-item" style="width: 486px;"><a href="images/products/product-16-1"
+                                                                         target="_blank"><img
+                                  src="images/products/product-16-1.jpg" alt=""> </a></div>
+                          <div class="owl-item" style="width: 486px;"><a href="images/products/product-16-2"
+                                                                         target="_blank"><img
+                                  src="images/products/product-16-2.jpg" alt=""> </a></div>
+                          <div class="owl-item" style="width: 486px;"><a href="images/products/product-16-3"
+                                                                         target="_blank"><img
+                                  src="images/products/product-16-3.jpg" alt=""> </a></div>
+                          <div class="owl-item" style="width: 486px;"><a href="images/products/product-16-4"
+                                                                         target="_blank"><img
+                                  src="images/products/product-16-4.jpg" alt=""></a></div>
+                        </div>
+                      </div>
+                      <div class="owl-nav disabled">
+                        <button type="button" role="presentation" class="owl-prev"><span aria-label="Previous">‹</span>
+                        </button>
+                        <button type="button" role="presentation" class="owl-next"><span aria-label="Next">›</span>
+                        </button>
+                      </div>
+                      <div class="owl-dots disabled"></div>
+                    </div>
+                  </div>
+                  <div class="product-gallery__carousel">
+                    <div class="owl-carousel owl-loaded owl-drag" id="product-carousel">
+                      <div class="owl-stage-outer">
+                        <div class="owl-stage"
+                             style="transform: translate3d(0px, 0px, 0px); transition: all 0s ease 0s; width: 500px;">
+                          <div class="owl-item active" style="width: 90px; margin-right: 10px;"><a href=""
+                                                                                                   class="product-gallery__carousel-item product-gallery__carousel-item&#45;&#45;active"><img
+                                  class="product-gallery__carousel-image" src="images/products/product-16.jpg" alt="">
+                          </a></div>
+                          <div class="owl-item active" style="width: 90px; margin-right: 10px;"><a href=""
+                                                                                                   class="product-gallery__carousel-item"><img
+                                  class="product-gallery__carousel-image" src="images/products/product-16-1.jpg" alt="">
+                          </a></div>
+                          <div class="owl-item active" style="width: 90px; margin-right: 10px;"><a href=""
+                                                                                                   class="product-gallery__carousel-item"><img
+                                  class="product-gallery__carousel-image" src="images/products/product-16-2.jpg" alt="">
+                          </a></div>
+                          <div class="owl-item active" style="width: 90px; margin-right: 10px;"><a href=""
+                                                                                                   class="product-gallery__carousel-item"><img
+                                  class="product-gallery__carousel-image" src="images/products/product-16-3.jpg" alt="">
+                          </a></div>
+                          <div class="owl-item active" style="width: 90px; margin-right: 10px;"><a href=""
+                                                                                                   class="product-gallery__carousel-item"><img
+                                  class="product-gallery__carousel-image" src="images/products/product-16-4.jpg" alt=""></a>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="owl-nav disabled">
+                        <button type="button" role="presentation" class="owl-prev"><span aria-label="Previous">‹</span>
+                        </button>
+                        <button type="button" role="presentation" class="owl-next"><span aria-label="Next">›</span>
+                        </button>
+                      </div>
+                      <div class="owl-dots disabled"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>&lt;!&ndash; .product__gallery / end &ndash;&gt;&lt;!&ndash; .product__info &ndash;&gt;
+              <div class="product__info">
+                <div class="product__wishlist-compare">
+                  <button type="button" class="btn btn-sm btn-light btn-svg-icon" data-toggle="tooltip"
+                          data-placement="right" title="Wishlist">
+                    <svg width="16px" height="16px">
+                      <use xlink:href="images/sprite.svg#wishlist-16"></use>
+                    </svg>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-light btn-svg-icon" data-toggle="tooltip"
+                          data-placement="right" title="Compare">
+                    <svg width="16px" height="16px">
+                      <use xlink:href="images/sprite.svg#compare-16"></use>
+                    </svg>
+                  </button>
+                </div>
+                <h1 class="product__name">Brandix Screwdriver SCREW1500ACC</h1>
+                <div class="product__rating">
+                  <div class="product__rating-stars">
+                    <div class="rating">
+                      <div class="rating__body">
+                        <svg class="rating__star rating__star&#45;&#45;active" width="13px" height="12px">
+                          <g class="rating__fill">
+                            <use xlink:href="images/sprite.svg#star-normal"></use>
+                          </g>
+                          <g class="rating__stroke">
+                            <use xlink:href="images/sprite.svg#star-normal-stroke"></use>
+                          </g>
+                        </svg>
+                        <div class="rating__star rating__star&#45;&#45;only-edge rating__star&#45;&#45;active">
+                          <div class="rating__fill">
+                            <div class="fake-svg-icon"></div>
+                          </div>
+                          <div class="rating__stroke">
+                            <div class="fake-svg-icon"></div>
+                          </div>
+                        </div>
+                        <svg class="rating__star rating__star&#45;&#45;active" width="13px" height="12px">
+                          <g class="rating__fill">
+                            <use xlink:href="images/sprite.svg#star-normal"></use>
+                          </g>
+                          <g class="rating__stroke">
+                            <use xlink:href="images/sprite.svg#star-normal-stroke"></use>
+                          </g>
+                        </svg>
+                        <div class="rating__star rating__star&#45;&#45;only-edge rating__star&#45;&#45;active">
+                          <div class="rating__fill">
+                            <div class="fake-svg-icon"></div>
+                          </div>
+                          <div class="rating__stroke">
+                            <div class="fake-svg-icon"></div>
+                          </div>
+                        </div>
+                        <svg class="rating__star rating__star&#45;&#45;active" width="13px" height="12px">
+                          <g class="rating__fill">
+                            <use xlink:href="images/sprite.svg#star-normal"></use>
+                          </g>
+                          <g class="rating__stroke">
+                            <use xlink:href="images/sprite.svg#star-normal-stroke"></use>
+                          </g>
+                        </svg>
+                        <div class="rating__star rating__star&#45;&#45;only-edge rating__star&#45;&#45;active">
+                          <div class="rating__fill">
+                            <div class="fake-svg-icon"></div>
+                          </div>
+                          <div class="rating__stroke">
+                            <div class="fake-svg-icon"></div>
+                          </div>
+                        </div>
+                        <svg class="rating__star rating__star&#45;&#45;active" width="13px" height="12px">
+                          <g class="rating__fill">
+                            <use xlink:href="images/sprite.svg#star-normal"></use>
+                          </g>
+                          <g class="rating__stroke">
+                            <use xlink:href="images/sprite.svg#star-normal-stroke"></use>
+                          </g>
+                        </svg>
+                        <div class="rating__star rating__star&#45;&#45;only-edge rating__star&#45;&#45;active">
+                          <div class="rating__fill">
+                            <div class="fake-svg-icon"></div>
+                          </div>
+                          <div class="rating__stroke">
+                            <div class="fake-svg-icon"></div>
+                          </div>
+                        </div>
+                        <svg class="rating__star rating__star&#45;&#45;active" width="13px" height="12px">
+                          <g class="rating__fill">
+                            <use xlink:href="images/sprite.svg#star-normal"></use>
+                          </g>
+                          <g class="rating__stroke">
+                            <use xlink:href="images/sprite.svg#star-normal-stroke"></use>
+                          </g>
+                        </svg>
+                        <div class="rating__star rating__star&#45;&#45;only-edge rating__star&#45;&#45;active">
+                          <div class="rating__fill">
+                            <div class="fake-svg-icon"></div>
+                          </div>
+                          <div class="rating__stroke">
+                            <div class="fake-svg-icon"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="product__rating-legend"><a href="">7 Reviews</a><span>/</span><a href="">Write A
+                    Review</a></div>
+                </div>
+                <div class="product__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur
+                  ornare, mi in ornare elementum, libero nibh lacinia urna, quis convallis lorem erat at purus. Maecenas
+                  eu varius nisi.
+                </div>
+                <ul class="product__features">
+                  <li>Speed: 750 RPM</li>
+                  <li>Power Source: Cordless-Electric</li>
+                  <li>Battery Cell Type: Lithium</li>
+                  <li>Voltage: 20 Volts</li>
+                  <li>Battery Capacity: 2 Ah</li>
+                </ul>
+                <ul class="product__meta">
+                  <li class="product__meta-availability">Availability: <span class="text-success">In Stock</span></li>
+                  <li>Brand: <a href="">Wakita</a></li>
+                  <li>SKU: 83690/32</li>
+                </ul>
+              </div>&lt;!&ndash; .product__info / end &ndash;&gt;&lt;!&ndash; .product__sidebar &ndash;&gt;
+              <div class="product__sidebar">
+                <div class="product__availability">Availability: <span class="text-success">In Stock</span></div>
+                <div class="product__prices">$1,499.00</div>&lt;!&ndash; .product__options &ndash;&gt;
+                <form class="product__options">
+                  <div class="form-group product__option"><label class="product__option-label">Color</label>
+                    <div class="input-radio-color">
+                      <div class="input-radio-color__list"><label
+                              class="input-radio-color__item input-radio-color__item&#45;&#45;white" style="color: #fff;"
+                              data-toggle="tooltip" title="White"><input type="radio" name="color">
+                        <span></span></label> <label class="input-radio-color__item" style="color: #ffd333;"
+                                                     data-toggle="tooltip" title="Yellow"><input type="radio"
+                                                                                                 name="color">
+                        <span></span></label> <label class="input-radio-color__item" style="color: #ff4040;"
+                                                     data-toggle="tooltip" title="Red"><input type="radio" name="color">
+                        <span></span></label> <label class="input-radio-color__item input-radio-color__item&#45;&#45;disabled"
+                                                     style="color: #4080ff;" data-toggle="tooltip" title="Blue"><input
+                              type="radio" name="color" disabled="disabled"> <span></span></label></div>
+                    </div>
+                  </div>
+                  <div class="form-group product__option"><label class="product__option-label">Material</label>
+                    <div class="input-radio-label">
+                      <div class="input-radio-label__list"><label><input type="radio" name="material">
+                        <span>Metal</span></label> <label><input type="radio" name="material"> <span>Wood</span></label>
+                        <label><input type="radio" name="material" disabled="disabled"> <span>Plastic</span></label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group product__option"><label class="product__option-label" for="product-quantity">Quantity</label>
+                    <div class="product__actions">
+                      <div class="product__actions-item">
+                        <div class="input-number product__quantity"><input id="product-quantity"
+                                                                           class="input-number__input form-control form-control-lg"
+                                                                           type="number" min="1" value="1">
+                          <div class="input-number__add"></div>
+                          <div class="input-number__sub"></div>
+                        </div>
+                      </div>
+                      <div class="product__actions-item product__actions-item&#45;&#45;addtocart">
+                        <button class="btn btn-primary btn-lg">Add to cart</button>
+                      </div>
+                      <div class="product__actions-item product__actions-item&#45;&#45;wishlist">
+                        <button type="button" class="btn btn-secondary btn-svg-icon btn-lg" data-toggle="tooltip"
+                                title="Wishlist">
+                          <svg width="16px" height="16px">
+                            <use xlink:href="images/sprite.svg#wishlist-16"></use>
+                          </svg>
+                        </button>
+                      </div>
+                      <div class="product__actions-item product__actions-item&#45;&#45;compare">
+                        <button type="button" class="btn btn-secondary btn-svg-icon btn-lg" data-toggle="tooltip"
+                                title="Compare">
+                          <svg width="16px" height="16px">
+                            <use xlink:href="images/sprite.svg#compare-16"></use>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </form>&lt;!&ndash; .product__options / end &ndash;&gt;</div>&lt;!&ndash; .product__end &ndash;&gt;
+              <div class="product__footer">
+                <div class="product__tags tags">
+                  <div class="tags__list"><a href="">Mounts</a> <a href="">Electrodes</a> <a href="">Chainsaws</a></div>
+                </div>
+                <div class="product__share-links share-links">
+                  <ul class="share-links__list">
+                    <li class="share-links__item share-links__item&#45;&#45;type&#45;&#45;like"><a href="">Like</a></li>
+                    <li class="share-links__item share-links__item&#45;&#45;type&#45;&#45;tweet"><a href="">Tweet</a></li>
+                    <li class="share-links__item share-links__item&#45;&#45;type&#45;&#45;pin"><a href="">Pin It</a></li>
+                    <li class="share-links__item share-links__item&#45;&#45;type&#45;&#45;counter"><a href="">4K</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>-->
+</section>
+</body>
+</html>

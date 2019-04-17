@@ -78,7 +78,7 @@ public class ShopApplication extends WebSecurityConfigurerAdapter implements Web
         http.authorizeRequests()
                 .antMatchers("/admin/login", "/admin/logout", "/login", "/logout").permitAll()
                 .antMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
-                .antMatchers("/user/**", "/api/user/**").hasRole("USER")
+                .antMatchers("/user/**", "/api/user/**").hasAnyRole("USER", "ADMIN")
                 .and().exceptionHandling().accessDeniedPage("/access-denied");
 
         http.authorizeRequests().and()
