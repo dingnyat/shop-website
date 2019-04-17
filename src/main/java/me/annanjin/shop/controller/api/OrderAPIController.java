@@ -55,4 +55,14 @@ public class OrderAPIController {
             return "Failed!";
         }
     }
+
+    @DeleteMapping("/api/admin/order/selected-delete")
+    public String deleteSelectedOrders(@RequestBody List<Integer> ids) {
+        try {
+            ids.forEach(id -> cartService.delete(id));
+            return "Successfully!";
+        } catch (Exception e) {
+            return "Failed!";
+        }
+    }
 }
