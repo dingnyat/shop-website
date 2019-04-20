@@ -2,7 +2,6 @@ package me.annanjin.shop.controller.api;
 
 import me.annanjin.shop.model.Cart;
 import me.annanjin.shop.service.AccountService;
-import me.annanjin.shop.service.CartItemService;
 import me.annanjin.shop.service.CartService;
 import me.annanjin.shop.util.datatable.DataTableRequest;
 import me.annanjin.shop.util.datatable.TableRecordResponseData;
@@ -18,8 +17,7 @@ import java.util.List;
 public class OrderAPIController {
     @Autowired
     private CartService cartService;
-    @Autowired
-    private CartItemService cartItemService;
+
     @Autowired
     private AccountService accountService;
 

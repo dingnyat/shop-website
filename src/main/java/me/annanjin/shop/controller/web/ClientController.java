@@ -1,5 +1,7 @@
 package me.annanjin.shop.controller.web;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.annanjin.shop.model.*;
 import me.annanjin.shop.service.AccountService;
 import me.annanjin.shop.service.CategoryService;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -43,9 +46,9 @@ public class ClientController {
             model.addAttribute("error", true);
             return "client/verify";
         }
-        long tokenTime = verificationToken.getTime();
+        Date tokenTime = verificationToken.getTime();
         Date date = new Date();
-        if (date.getTime() - tokenTime > 1000 * 60 * 30) { // 30 minutes
+        if ((date.getTime() - tokenTime.getTime()) > (1000 * 60 * 30)) { // 30 minutes
             model.addAttribute("error", true);
             return "client/verify";
         }
@@ -72,14 +75,26 @@ public class ClientController {
     @PostMapping("/api/category/{categoryCode}")
     @ResponseBody
     public ResponseEntity<ProductFilterResponse> productGrid(@PathVariable("categoryCode") String code,
-                                                             @RequestBody(required = false) ProductFilterRequest request) {
+                                                             @RequestBody(required = false) ProductFilterRequest request) throws JsonProcessingException {
         if (request == null) request = new ProductFilterRequest();
         request.setCategory(categoryService.getByCode(code));
         List<Product> products = productService.getProductsByCategoryWithFilter(request);
         ProductFilterResponse response = new ProductFilterResponse();
         response.setResults(products);
         response.setRecordsFiltered((long) products.size());
-        response.setRecordsTotal(productService.getRecordsTotal(request));
+        response.setRecordsTotal(productService.getFilteredRecordsTotal(request));
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/product/{code}")
+    public String getProduct(@PathVariable("code") String code, Model model) {
+        Product product = productService.getByCode(code);
+        try {
+            product.setImageLinks((new ObjectMapper()).readValue(product.getJSONOfImages(), List.class));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        model.addAttribute("product", product);
+        return "client/product";
     }
 }

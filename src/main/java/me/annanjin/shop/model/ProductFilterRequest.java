@@ -1,10 +1,14 @@
 package me.annanjin.shop.model;
 
+import me.annanjin.shop.util.search.SearchCriteria;
+
+import java.util.List;
+
 public class ProductFilterRequest {
     private int length;
     private int start;
     private Order order;
-    private String keyword;
+    private List<SearchCriteria> searchCriteriaList;
     private Category category;
 
     public ProductFilterRequest() {
@@ -34,12 +38,12 @@ public class ProductFilterRequest {
         this.order = order;
     }
 
-    public String getKeyword() {
-        return keyword;
+    public List<SearchCriteria> getSearchCriteriaList() {
+        return searchCriteriaList;
     }
 
-    public void setKeyword(String keyword) {
-        this.keyword = keyword;
+    public void setSearchCriteriaList(List<SearchCriteria> searchCriteriaList) {
+        this.searchCriteriaList = searchCriteriaList;
     }
 
     public Category getCategory() {

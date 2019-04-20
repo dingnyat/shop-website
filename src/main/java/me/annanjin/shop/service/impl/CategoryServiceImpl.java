@@ -20,6 +20,8 @@ public class CategoryServiceImpl extends ServiceAbstract<Integer, Category, Cate
 
     @Override
     public Category getByCode(String code) {
-        return beanTools.map(repository.getByCode(code), new Category());
+        CategoryEntity categoryEntity = repository.getByCode(code);
+        if (categoryEntity == null) return null;
+        return beanTools.map(categoryEntity, new Category());
     }
 }

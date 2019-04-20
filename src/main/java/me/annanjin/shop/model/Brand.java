@@ -1,19 +1,16 @@
 package me.annanjin.shop.model;
 
-public class Brand {
-    private int id;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.List;
+
+public class Brand extends CommonModel<Integer> {
     private String name;
     private String code;
+    @JsonIgnore
+    private List<Product> products;
 
     public Brand() {
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -30,5 +27,13 @@ public class Brand {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
     }
 }

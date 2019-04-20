@@ -31,8 +31,15 @@ public class ProductServiceImpl extends ServiceAbstract<Integer, Product, Produc
     }
 
     @Override
-    public Long getRecordsTotal(ProductFilterRequest request) {
-        return repository.getRecordsTotal(request);
+    public Long getFilteredRecordsTotal(ProductFilterRequest request) {
+        return repository.getFilteredRecordsTotal(request);
+    }
+
+    @Override
+    public Product getByCode(String code) {
+        ProductEntity productEntity = repository.getByCode(code);
+        if (productEntity == null) return null;
+        return beanTools.map(productEntity, new Product());
     }
 }
 

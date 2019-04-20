@@ -1,10 +1,8 @@
 package me.annanjin.shop.controller.web;
 
 import me.annanjin.shop.model.Account;
-import me.annanjin.shop.model.CartItem;
 import me.annanjin.shop.model.Role;
 import me.annanjin.shop.service.AccountService;
-import me.annanjin.shop.service.CartItemService;
 import me.annanjin.shop.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,9 +29,6 @@ public class AdminController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private CartItemService cartItemService;
 
     @GetMapping("/login")
     public String login() {
@@ -68,37 +63,26 @@ public class AdminController {
     @GetMapping(value = "/order")
     public String order(Model model) {
         List<Account> accountList = accountService.getAllRecords();
-        model.addAttribute("accountList",accountList);
+        model.addAttribute("accountList", accountList);
         return "admin/order";
     }
 
     @PostMapping("/account/add")
-        @ResponseBody
-        public String addAccount(@ModelAttribute Account account) {
-            try {
-                if (account.getMultipartFile() != null && !account.getMultipartFile().isEmpty()) {
-                    final String UPLOAD_FOLDER = "D:\\user";
-                    String imageUrl = System.currentTimeMillis() + ".jpg";
-                    Path pathAvatar = Paths.get(UPLOAD_FOLDER + File.separator + imageUrl);
-                    Files.write(pathAvatar, account.getMultipartFile().getBytes());
-                    account.setAvatarUrl(imageUrl);
-                }
-                HashSet<Role> roles = new HashSet<>();
-                roles.add(roleService.getById(2));
-                account.setRoles(roles);
-                account.setPassword(passwordEncoder.encode(account.getPassword()));
-                accountService.create(account);
-                return "Successfully!";
-            } catch (Exception e) {
-                return "Failed!";
-            }
-    }
-
-    @PostMapping("/cart-item/add")
     @ResponseBody
-    public String addCartItem(@ModelAttribute CartItem cartItem) {
+    public String addAccount(@ModelAttribute Account account) {
         try {
-            cartItemService.create(cartItem);
+            if (account.getMultipartFile() != null && !account.getMultipartFile().isEmpty()) {
+                final String UPLOAD_FOLDER = "D:\\user";
+                String imageUrl = System.currentTimeMillis() + ".jpg";
+                Path pathAvatar = Paths.get(UPLOAD_FOLDER + File.separator + imageUrl);
+                Files.write(pathAvatar, account.getMultipartFile().getBytes());
+                account.setAvatarUrl(imageUrl);
+            }
+            HashSet<Role> roles = new HashSet<>();
+            roles.add(roleService.getById(2));
+            account.setRoles(roles);
+            account.setPassword(passwordEncoder.encode(account.getPassword()));
+            accountService.create(account);
             return "Successfully!";
         } catch (Exception e) {
             return "Failed!";

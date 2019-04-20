@@ -8,5 +8,7 @@ import java.util.List;
 public interface ProductService extends ServiceInterface<Integer, Product> {
     List<Product> getProductsByCategoryWithFilter(ProductFilterRequest request);
 
-    Long getRecordsTotal(ProductFilterRequest request);
+    Long getFilteredRecordsTotal(ProductFilterRequest request);
+
+    Product getByCode(String code);
 }

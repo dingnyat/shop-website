@@ -59,7 +59,7 @@ public class CategoryAPIController {
     public ResponseEntity<?> rootCategory() {
         Category category;
         try {
-            category = categoryService.getById(7);
+            category = categoryService.getById(1);
         } catch (Exception e) {
             return new ResponseEntity<>("Failed", HttpStatus.INTERNAL_SERVER_ERROR);
         }

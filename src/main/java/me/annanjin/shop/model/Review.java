@@ -1,24 +1,19 @@
 package me.annanjin.shop.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Date;
 
-public class Review {
-    private int id;
+public class Review extends CommonModel<Integer> {
     private int star;
     private String name;
     private String email;
     private String content;
     private Date time;
+    @JsonIgnore
+    private Product product;
 
     public Review() {
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public int getStar() {
@@ -59,5 +54,13 @@ public class Review {
 
     public void setTime(Date time) {
         this.time = time;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
     }
 }

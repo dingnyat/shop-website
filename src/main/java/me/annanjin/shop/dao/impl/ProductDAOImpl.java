@@ -2,13 +2,17 @@ package me.annanjin.shop.dao.impl;
 
 import me.annanjin.shop.dao.DAOAbstract;
 import me.annanjin.shop.dao.ProductDAO;
+import me.annanjin.shop.entity.CategoryEntity;
 import me.annanjin.shop.entity.ProductEntity;
 import me.annanjin.shop.model.Category;
 import me.annanjin.shop.model.ProductFilterRequest;
+import me.annanjin.shop.util.search.SearchCriteriaConsumer;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -18,54 +22,78 @@ import java.util.Stack;
 public class ProductDAOImpl extends DAOAbstract<Integer, ProductEntity> implements ProductDAO {
     @Override
     public List<ProductEntity> getProductsByCategoryWithFilter(ProductFilterRequest request) {
-        List<String> conditions = new ArrayList<>();
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<ProductEntity> criteriaQuery = criteriaBuilder.createQuery(ProductEntity.class);
+        Root<ProductEntity> productEntityRoot = criteriaQuery.from(ProductEntity.class);
+        Join<ProductEntity, CategoryEntity> categoryEntityListJoin = productEntityRoot.join("categories", JoinType.INNER);
+
+        List<Predicate> categoryPredicates = new ArrayList<>();
         Stack<Category> stack = new Stack<>();
         stack.push(request.getCategory());
         while (!stack.isEmpty()) {
             Category category = stack.pop();
             category.getChildCategories().forEach(stack::push);
-            conditions.add("c.code = \'" + category.getCode() + "\'");
+            categoryPredicates.add(criteriaBuilder.equal(categoryEntityListJoin.get("code"), category.getCode()));
         }
 
-        StringBuilder conditionExpression = new StringBuilder();
-
-        for (int i = 0; i < conditions.size() - 1; i++) {
-            conditionExpression.append(conditions.get(i)).append(" OR ");
+        List<Predicate> searchPredicates = new ArrayList<>();
+        if (request.getSearchCriteriaList() != null) {
+            SearchCriteriaConsumer searchCriteriaConsumer = new SearchCriteriaConsumer(criteriaBuilder, productEntityRoot);
+            request.getSearchCriteriaList().forEach(searchCriteria -> searchPredicates.add(searchCriteriaConsumer.createPredicate(searchCriteria)));
         }
 
-        conditionExpression.append(conditions.get(conditions.size() - 1));
+        criteriaQuery
+                .select(productEntityRoot)
+                .where(criteriaBuilder.and(criteriaBuilder.and(searchPredicates.toArray(new Predicate[]{})),
+                        criteriaBuilder.or(categoryPredicates.toArray(new Predicate[]{}))));
 
-        String hql = "SELECT p FROM CategoryEntity c JOIN c.products p WHERE " + conditionExpression.toString() + " " +
-                "ORDER BY p." + request.getOrder().getProperty() + " " + request.getOrder().getDirection().toUpperCase();
+        if (request.getOrder().getDirection().equalsIgnoreCase("asc")) {
+            criteriaQuery.orderBy(criteriaBuilder.asc(productEntityRoot.get(request.getOrder().getProperty())));
+        } else {
+            criteriaQuery.orderBy(criteriaBuilder.desc(productEntityRoot.get(request.getOrder().getProperty())));
+        }
 
-        Query query = entityManager.createQuery(hql, ProductEntity.class);
+        TypedQuery<ProductEntity> query = entityManager.createQuery(criteriaQuery);
         query.setFirstResult(request.getStart());
         query.setMaxResults(request.getLength());
         return query.getResultList();
     }
 
     @Override
-    public Long getRecordsTotal(ProductFilterRequest request) {
-        List<String> conditions = new ArrayList<>();
+    public Long getFilteredRecordsTotal(ProductFilterRequest request) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
+        Root<ProductEntity> productEntityRoot = criteriaQuery.from(ProductEntity.class);
+        Join<ProductEntity, CategoryEntity> categoryEntityListJoin = productEntityRoot.join("categories", JoinType.INNER);
+
+        List<Predicate> categoryPredicates = new ArrayList<>();
         Stack<Category> stack = new Stack<>();
         stack.push(request.getCategory());
         while (!stack.isEmpty()) {
             Category category = stack.pop();
             category.getChildCategories().forEach(stack::push);
-            conditions.add("c.code = \'" + category.getCode() + "\'");
+            categoryPredicates.add(criteriaBuilder.equal(categoryEntityListJoin.get("code"), category.getCode()));
         }
 
-        StringBuilder conditionExpression = new StringBuilder();
-
-        for (int i = 0; i < conditions.size() - 1; i++) {
-            conditionExpression.append(conditions.get(i)).append(" OR ");
+        List<Predicate> searchPredicates = new ArrayList<>();
+        if (request.getSearchCriteriaList() != null) {
+            SearchCriteriaConsumer searchCriteriaConsumer = new SearchCriteriaConsumer(criteriaBuilder, productEntityRoot);
+            request.getSearchCriteriaList().forEach(searchCriteria -> searchPredicates.add(searchCriteriaConsumer.createPredicate(searchCriteria)));
         }
 
-        conditionExpression.append(conditions.get(conditions.size() - 1));
+        criteriaQuery
+                .select(criteriaBuilder.count(productEntityRoot))
+                .where(criteriaBuilder.and(criteriaBuilder.and(searchPredicates.toArray(new Predicate[]{})),
+                        criteriaBuilder.or(categoryPredicates.toArray(new Predicate[]{}))));
 
-        String hql = "SELECT COUNT(p) FROM CategoryEntity c JOIN c.products p WHERE " + conditionExpression.toString() + " " +
-                "ORDER BY p." + request.getOrder().getProperty() + " " + request.getOrder().getDirection().toUpperCase();
-        Query query = entityManager.createQuery(hql, Long.class);
-        return (Long) query.getSingleResult();
+        TypedQuery<Long> query = entityManager.createQuery(criteriaQuery);
+        return query.getSingleResult();
+    }
+
+    @Override
+    public ProductEntity getByCode(String code) {
+        String hql = "SELECT p FROM ProductEntity p WHERE p.code = '" + code + "'";
+        Query query = entityManager.createQuery(hql, ProductEntity.class);
+        return (ProductEntity) query.getSingleResult();
     }
 }

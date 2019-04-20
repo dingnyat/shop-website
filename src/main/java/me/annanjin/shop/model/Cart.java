@@ -11,12 +11,6 @@ public class Cart extends CommonModel<Integer> {
     public Cart() {
     }
 
-    public Cart(Account buyer, Date dateBuy, Set<CartItem> cartItems) {
-        this.buyer = buyer;
-        this.dateBuy = dateBuy;
-        this.cartItems = cartItems;
-    }
-
     public Account getBuyer() {
         return buyer;
     }

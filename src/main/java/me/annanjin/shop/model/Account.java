@@ -22,18 +22,6 @@ public class Account extends CommonModel<Integer> {
     public Account() {
     }
 
-    public Account(String username, String password, String name, String address, String phone, String email, String avatarUrl, Set<Role> roles, MultipartFile multipartFile) {
-        this.username = username;
-        this.password = password;
-        this.name = name;
-        this.address = address;
-        this.phone = phone;
-        this.email = email;
-        this.avatarUrl = avatarUrl;
-        this.roles = roles;
-        this.multipartFile = multipartFile;
-    }
-
     public String getUsername() {
         return username;
     }

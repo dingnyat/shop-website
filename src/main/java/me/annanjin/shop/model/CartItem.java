@@ -12,13 +12,6 @@ public class CartItem extends CommonModel<Integer> {
     public CartItem() {
     }
 
-    public CartItem(Product product, int buyQuantity, double sellPrice, Cart cart) {
-        this.product = product;
-        this.buyQuantity = buyQuantity;
-        this.sellPrice = sellPrice;
-        this.cart = cart;
-    }
-
     public Product getProduct() {
         return product;
     }

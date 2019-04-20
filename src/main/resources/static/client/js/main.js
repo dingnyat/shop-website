@@ -778,7 +778,7 @@
     /*
     // price filter
     */
-    $(function () {
+    /*$(function () {
         $('.filter-price').each(function (i, element) {
             const min = $(element).data('min');
             const max = $(element).data('max');
@@ -805,7 +805,7 @@
                 titleValues[handle].innerHTML = values[handle];
             });
         });
-    });
+    });*/
 
 
     /*

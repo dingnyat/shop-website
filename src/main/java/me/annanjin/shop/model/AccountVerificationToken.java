@@ -1,20 +1,15 @@
 package me.annanjin.shop.model;
 
+import java.util.Date;
+
 public class AccountVerificationToken {
 
     private Long id;
     private String token;
     private Account account;
-    private Long time;
+    private Date time;
 
     public AccountVerificationToken() {
-    }
-
-    public AccountVerificationToken(Long id, String token, Account account, Long time) {
-        this.id = id;
-        this.token = token;
-        this.account = account;
-        this.time = time;
     }
 
     public Long getId() {
@@ -41,11 +36,11 @@ public class AccountVerificationToken {
         this.account = account;
     }
 
-    public Long getTime() {
+    public Date getTime() {
         return time;
     }
 
-    public void setTime(Long time) {
+    public void setTime(Date time) {
         this.time = time;
     }
 }

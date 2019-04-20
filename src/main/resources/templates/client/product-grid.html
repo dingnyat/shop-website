@@ -17,6 +17,7 @@
               currPage = 1;
               getProducts();
           });
+
       });
 
       function getProducts() {
@@ -30,8 +31,16 @@
                   else if (s === "name_desc") return {property: "name", direction: "DESC"};
                   else if (s === "price_asc") return {property: "price", direction: "ASC"};
                   else if (s === "price_desc") return {property: "price", direction: "DESC"};
-              }()
+              }(),
+              searchCriteriaList: [
+                  {
+                      key: "price",
+                      operator: "GREATER_THAN",
+                      value: 0,
+                  }
+              ]
           };
+
           $.ajax({
               url: "/api" + location.pathname,
               type: "POST",
@@ -115,8 +124,51 @@
               productDOM.find(".product-card__name a").attr("href", "/product/" + value.id);
               productDOM.find(".product-card__prices").html("$" + value.price);
               productDOM.find(".product-card__image a img").attr("src", value.thumbnailUrl);
-              productDOM.find(".product-card__image a img").attr("style", "max-height: 90%");
               productDOM.find(".product-card__image a").attr("href", "/product/" + value.id);
+              productDOM.find(".product-card__rating-legend span").html(value.reviews.length);
+              let $rateStarBody = productDOM.find(".rating__body");
+              $rateStarBody.html("");
+              let star = 0;
+              value.reviews.forEach(function (review) {
+                  star += review.star;
+              });
+              star = value.reviews.length > 0 ? Math.floor(star / value.reviews.length) : 0;
+              for (let i = 1; i <= star; i++) {
+                  $rateStarBody.append('<svg class="rating__star rating__star--active" width="13px" height="12px">\n' +
+                      '                              <g class="rating__fill">\n' +
+                      '                                <use xlink:href="/client/images/sprite.svg#star-normal"></use>\n' +
+                      '                              </g>\n' +
+                      '                              <g class="rating__stroke">\n' +
+                      '                                <use xlink:href="/client/images/sprite.svg#star-normal-stroke"></use>\n' +
+                      '                              </g>\n' +
+                      '                            </svg>\n' +
+                      '                            <div class="rating__star rating__star--only-edge rating__star--active">\n' +
+                      '                              <div class="rating__fill">\n' +
+                      '                                <div class="fake-svg-icon"></div>\n' +
+                      '                              </div>\n' +
+                      '                              <div class="rating__stroke">\n' +
+                      '                                <div class="fake-svg-icon"></div>\n' +
+                      '                              </div>\n' +
+                      '                            </div>');
+              }
+              for (let i = 5; i > star; i--) {
+                  $rateStarBody.append('<svg class="rating__star" width="13px" height="12px">\n' +
+                      '                              <g class="rating__fill">\n' +
+                      '                                <use xlink:href="/client/images/sprite.svg#star-normal"></use>\n' +
+                      '                              </g>\n' +
+                      '                              <g class="rating__stroke">\n' +
+                      '                                <use xlink:href="/client/images/sprite.svg#star-normal-stroke"></use>\n' +
+                      '                              </g>\n' +
+                      '                            </svg>\n' +
+                      '                            <div class="rating__star rating__star--only-edge">\n' +
+                      '                              <div class="rating__fill">\n' +
+                      '                                <div class="fake-svg-icon"></div>\n' +
+                      '                              </div>\n' +
+                      '                              <div class="rating__stroke">\n' +
+                      '                                <div class="fake-svg-icon"></div>\n' +
+                      '                              </div>\n' +
+                      '                            </div>');
+              }
               $product_list_body.append(productDOM);
           });
           $(".view-options__legend").html("Showing " + data.recordsFiltered + " of " + data.recordsTotal + " products");
@@ -262,32 +314,25 @@
                   <div class="filter filter--opened" data-collapse-item="">
                     <button type="button" class="filter__title" data-collapse-trigger="">Price
                       <svg class="filter__arrow" width="12px" height="7px">
-                        <use xlink:href="images/sprite.svg#arrow-rounded-down-12x7"></use>
+                        <use th:xlink:href="@{/client/images/sprite.svg#arrow-rounded-down-12x7}"></use>
                       </svg>
                     </button>
                     <div class="filter__body" data-collapse-content="">
                       <div class="filter__container">
-                        <div class="filter-price" data-min="500" data-max="1500" data-from="590" data-to="1130">
-                          <div class="filter-price__slider noUi-target noUi-ltr noUi-horizontal">
-                            <!--<div class="noUi-base">
-                              <div class="noUi-connects">
-                                <div class="noUi-connect" style="transform: translate(9%) scale(0.54, 1);"></div>
-                              </div>
-                              <div class="noUi-origin" style="transform: translate(-91%); z-index: 5;">
-                                <div class="noUi-handle noUi-handle-lower" data-handle="0" tabindex="0" role="slider"
-                                     aria-orientation="horizontal" aria-valuemin="500.0" aria-valuemax="1130.0"
-                                     aria-valuenow="590.0" aria-valuetext="590.00"></div>
-                              </div>
-                              <div class="noUi-origin" style="transform: translate(-37%); z-index: 4;">
-                                <div class="noUi-handle noUi-handle-upper" data-handle="1" tabindex="0" role="slider"
-                                     aria-orientation="horizontal" aria-valuemin="590.0" aria-valuemax="1500.0"
-                                     aria-valuenow="1130.0" aria-valuetext="1130.00"></div>
-                              </div>
-                            </div>-->
-                          </div>
-                          <div class="filter-price__title">Price: $<span class="filter-price__min-value">590.00</span> –
-                            $<span class="filter-price__max-value">1130.00</span></div>
+                        <div>Choose price range</div>
+                        <div>
+                          <label>
+                            From
+                            <input type="text" class="form-control" width="50%">
+                          </label>
                         </div>
+                        <div>
+                          <label>
+                            To
+                            <input type="text" class="form-control" width="50%">
+                          </label>
+                        </div>
+                        <button class="btn btn-sm btn-outline-warning">OK</button>
                       </div>
                     </div>
                   </div>
@@ -343,223 +388,6 @@
                                     xlink:href="images/sprite.svg#check-9x7"></use></svg> </span></span><span
                                     class="filter-list__title">Metaggo </span><span
                                     class="filter-list__counter">25</span></label></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="widget-filters__item">
-                  <div class="filter filter--opened" data-collapse-item="">
-                    <button type="button" class="filter__title" data-collapse-trigger="">Brand
-                      <svg class="filter__arrow" width="12px" height="7px">
-                        <use xlink:href="images/sprite.svg#arrow-rounded-down-12x7"></use>
-                      </svg>
-                    </button>
-                    <div class="filter__body" data-collapse-content="">
-                      <div class="filter__container">
-                        <div class="filter-list">
-                          <div class="filter-list__list"><label class="filter-list__item"><span
-                                  class="filter-list__input input-radio"><span class="input-radio__body"><input
-                                  class="input-radio__input" name="filter_radio" type="radio"> <span
-                                  class="input-radio__circle"></span> </span></span><span class="filter-list__title">Wakita </span><span
-                                  class="filter-list__counter">7</span></label> <label class="filter-list__item"><span
-                                  class="filter-list__input input-radio"><span class="input-radio__body"><input
-                                  class="input-radio__input" name="filter_radio" type="radio"> <span
-                                  class="input-radio__circle"></span> </span></span><span class="filter-list__title">Zosch </span><span
-                                  class="filter-list__counter">42</span></label> <label
-                                  class="filter-list__item filter-list__item--disabled"><span
-                                  class="filter-list__input input-radio"><span class="input-radio__body"><input
-                                  class="input-radio__input" name="filter_radio" type="radio" checked="checked"
-                                  disabled="disabled"> <span class="input-radio__circle"></span> </span></span><span
-                                  class="filter-list__title">WeVALT</span></label> <label
-                                  class="filter-list__item filter-list__item--disabled"><span
-                                  class="filter-list__input input-radio"><span class="input-radio__body"><input
-                                  class="input-radio__input" name="filter_radio" type="radio" disabled="disabled"> <span
-                                  class="input-radio__circle"></span> </span></span><span class="filter-list__title">Hammer</span></label>
-                            <label class="filter-list__item"><span class="filter-list__input input-radio"><span
-                                    class="input-radio__body"><input class="input-radio__input" name="filter_radio"
-                                                                     type="radio"> <span
-                                    class="input-radio__circle"></span> </span></span><span class="filter-list__title">Mitasia </span><span
-                                    class="filter-list__counter">1</span></label> <label class="filter-list__item"><span
-                                    class="filter-list__input input-radio"><span class="input-radio__body"><input
-                                    class="input-radio__input" name="filter_radio" type="radio"> <span
-                                    class="input-radio__circle"></span> </span></span><span class="filter-list__title">Metaggo </span><span
-                                    class="filter-list__counter">25</span></label></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="widget-filters__item">
-                  <div class="filter filter--opened" data-collapse-item="">
-                    <button type="button" class="filter__title" data-collapse-trigger="">Color
-                      <svg class="filter__arrow" width="12px" height="7px">
-                        <use xlink:href="images/sprite.svg#arrow-rounded-down-12x7"></use>
-                      </svg>
-                    </button>
-                    <div class="filter__body" data-collapse-content="">
-                      <div class="filter__container">
-                        <div class="filter-color">
-                          <div class="filter-color__list"><label class="filter-color__item"><span
-                                  class="filter-color__check input-check-color input-check-color--white"
-                                  style="color: #fff;"><label class="input-check-color__body"><input
-                                  class="input-check-color__input" type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span
-                                  class="filter-color__check input-check-color input-check-color--light"
-                                  style="color: #d9d9d9;"><label class="input-check-color__body"><input
-                                  class="input-check-color__input" type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #b3b3b3;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #808080;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #666;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #4d4d4d;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #262626;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #ff4040;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox" checked="checked"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #ff8126;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span
-                                  class="filter-color__check input-check-color input-check-color--light"
-                                  style="color: #ffd440;"><label class="input-check-color__body"><input
-                                  class="input-check-color__input" type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span
-                                  class="filter-color__check input-check-color input-check-color--light"
-                                  style="color: #becc1f;"><label class="input-check-color__body"><input
-                                  class="input-check-color__input" type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #8fcc14;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox" checked="checked"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #47cc5e;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #47cca0;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #47cccc;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #40bfff;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox" disabled="disabled"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #3d6dcc;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox" checked="checked"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #7766cc;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #b852cc;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label> <label
-                                  class="filter-color__item"><span class="filter-color__check input-check-color"
-                                                                   style="color: #e53981;"><label
-                                  class="input-check-color__body"><input class="input-check-color__input"
-                                                                         type="checkbox"> <span
-                                  class="input-check-color__box"></span> <svg class="input-check-color__icon"
-                                                                              width="12px" height="9px"><use
-                                  xlink:href="images/sprite.svg#check-12x9"></use></svg> <span
-                                  class="input-check-color__stick"></span></label></span></label></div>
                         </div>
                       </div>
                     </div>
@@ -655,7 +483,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="view-options__legend">Showing 6 of 98 products</div>
+                <div class="view-options__legend">Showing 0 of 0 products</div>
                 <div class="view-options__divider"></div>
                 <div class="view-options__control">
                   <label for="order-product-by">Sort By</label>
@@ -703,89 +531,9 @@
                       <div class="product-card__rating">
                         <div class="rating">
                           <div class="rating__body">
-                            <svg class="rating__star rating__star--active" width="13px" height="12px">
-                              <g class="rating__fill">
-                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal}"></use>
-                              </g>
-                              <g class="rating__stroke">
-                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal-stroke}"></use>
-                              </g>
-                            </svg>
-                            <div class="rating__star rating__star--only-edge rating__star--active">
-                              <div class="rating__fill">
-                                <div class="fake-svg-icon"></div>
-                              </div>
-                              <div class="rating__stroke">
-                                <div class="fake-svg-icon"></div>
-                              </div>
-                            </div>
-                            <svg class="rating__star rating__star--active" width="13px" height="12px">
-                              <g class="rating__fill">
-                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal}"></use>
-                              </g>
-                              <g class="rating__stroke">
-                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal-stroke}"></use>
-                              </g>
-                            </svg>
-                            <div class="rating__star rating__star--only-edge rating__star--active">
-                              <div class="rating__fill">
-                                <div class="fake-svg-icon"></div>
-                              </div>
-                              <div class="rating__stroke">
-                                <div class="fake-svg-icon"></div>
-                              </div>
-                            </div>
-                            <svg class="rating__star rating__star--active" width="13px" height="12px">
-                              <g class="rating__fill">
-                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal}"></use>
-                              </g>
-                              <g class="rating__stroke">
-                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal-stroke}"></use>
-                              </g>
-                            </svg>
-                            <div class="rating__star rating__star--only-edge rating__star--active">
-                              <div class="rating__fill">
-                                <div class="fake-svg-icon"></div>
-                              </div>
-                              <div class="rating__stroke">
-                                <div class="fake-svg-icon"></div>
-                              </div>
-                            </div>
-                            <svg class="rating__star rating__star--active" width="13px" height="12px">
-                              <g class="rating__fill">
-                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal}"></use>
-                              </g>
-                              <g class="rating__stroke">
-                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal-stroke}"></use>
-                              </g>
-                            </svg>
-                            <div class="rating__star rating__star--only-edge rating__star--active">
-                              <div class="rating__fill">
-                                <div class="fake-svg-icon"></div>
-                              </div>
-                              <div class="rating__stroke">
-                                <div class="fake-svg-icon"></div>
-                              </div>
-                            </div>
-                            <svg class="rating__star" width="13px" height="12px">
-                              <g class="rating__fill">
-                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal}"></use>
-                              </g>
-                              <g class="rating__stroke">
-                                <use th:xlink:href="@{/client/images/sprite.svg#star-normal-stroke}"></use>
-                              </g>
-                            </svg>
-                            <div class="rating__star rating__star--only-edge">
-                              <div class="rating__fill">
-                                <div class="fake-svg-icon"></div>
-                              </div>
-                              <div class="rating__stroke">
-                                <div class="fake-svg-icon"></div>
-                              </div>
-                            </div>
                           </div>
                         </div>
-                        <div class="product-card__rating-legend">9 Reviews</div>
+                        <div class="product-card__rating-legend"><span></span> Reviews</div>
                       </div>
                       <ul class="product-card__features-list">
                         <li><span class="ml-3">Speed: 750 RPM</span></li>

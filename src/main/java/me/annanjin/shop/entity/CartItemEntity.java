@@ -10,7 +10,7 @@ public class CartItemEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private ProductEntity product;
 
@@ -25,13 +25,6 @@ public class CartItemEntity {
     private CartEntity cart;
 
     public CartItemEntity() {
-    }
-
-    public CartItemEntity(ProductEntity product, int buyQuantity, double sellPrice, CartEntity cart) {
-        this.product = product;
-        this.buyQuantity = buyQuantity;
-        this.sellPrice = sellPrice;
-        this.cart = cart;
     }
 
     public int getId() {

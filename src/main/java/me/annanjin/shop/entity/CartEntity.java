@@ -19,17 +19,11 @@ public class CartEntity {
     @Column(name = "date_buy", nullable = false)
     private Date dateBuy;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "cart_id", nullable = false)
     private Set<CartItemEntity> cartItems;
 
     public CartEntity() {
-    }
-
-    public CartEntity(AccountEntity buyer, Date dateBuy, Set<CartItemEntity> cartItems) {
-        this.buyer = buyer;
-        this.dateBuy = dateBuy;
-        this.cartItems = cartItems;
     }
 
     public int getId() {

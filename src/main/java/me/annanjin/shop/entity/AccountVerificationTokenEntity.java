@@ -1,6 +1,7 @@
 package me.annanjin.shop.entity;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "account_verification_token")
@@ -18,16 +19,11 @@ public class AccountVerificationTokenEntity {
     @JoinColumn(name = "account_id", nullable = false, referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_account_account_token"))
     private AccountEntity account;
 
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "time", nullable = false)
-    private Long time;
+    private Date time;
 
     public AccountVerificationTokenEntity() {
-    }
-
-    public AccountVerificationTokenEntity(String token, AccountEntity account, Long time) {
-        this.token = token;
-        this.account = account;
-        this.time = time;
     }
 
     public Long getId() {
@@ -54,11 +50,11 @@ public class AccountVerificationTokenEntity {
         this.account = account;
     }
 
-    public Long getTime() {
+    public Date getTime() {
         return time;
     }
 
-    public void setTime(Long time) {
+    public void setTime(Date time) {
         this.time = time;
     }
 }

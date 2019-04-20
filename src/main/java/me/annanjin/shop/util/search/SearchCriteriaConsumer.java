@@ -1,26 +1,26 @@
 package me.annanjin.shop.util.search;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.From;
 import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import java.util.function.Consumer;
 
 public class SearchCriteriaConsumer implements Consumer<SearchCriteria> {
 
     protected Predicate predicate;
     protected CriteriaBuilder criteriaBuilder;
-    protected Root root;
+    protected From root;
 
     public SearchCriteriaConsumer() {
     }
 
-    public SearchCriteriaConsumer(Predicate predicate, CriteriaBuilder criteriaBuilder, Root root) {
-        this.predicate = predicate;
+    public SearchCriteriaConsumer(CriteriaBuilder criteriaBuilder, From root) {
         this.criteriaBuilder = criteriaBuilder;
         this.root = root;
     }
 
-    public SearchCriteriaConsumer(CriteriaBuilder criteriaBuilder, Root root) {
+    public SearchCriteriaConsumer(Predicate predicate, CriteriaBuilder criteriaBuilder, From root) {
+        this.predicate = predicate;
         this.criteriaBuilder = criteriaBuilder;
         this.root = root;
     }
@@ -41,11 +41,11 @@ public class SearchCriteriaConsumer implements Consumer<SearchCriteria> {
         this.criteriaBuilder = criteriaBuilder;
     }
 
-    public Root getRoot() {
+    public From getRoot() {
         return root;
     }
 
-    public void setRoot(Root root) {
+    public void setRoot(From root) {
         this.root = root;
     }
 

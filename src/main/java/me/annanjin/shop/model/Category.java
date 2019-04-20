@@ -16,11 +16,6 @@ public class Category extends CommonModel<Integer> {
     public Category() {
     }
 
-    public Category(String code, String name) {
-        this.code = code;
-        this.name = name;
-    }
-
     public String getCode() {
         return code;
     }

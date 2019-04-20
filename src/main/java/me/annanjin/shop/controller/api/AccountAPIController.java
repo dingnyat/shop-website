@@ -121,7 +121,7 @@ public class AccountAPIController {
             account.setId(accountService.create(account));
 
             AccountVerificationToken verificationToken = new AccountVerificationToken();
-            verificationToken.setTime((new Date()).getTime());
+            verificationToken.setTime(new Date());
             verificationToken.setAccount(account);
             verificationToken.setToken(UUID.randomUUID().toString());
             accountService.createAccountVerificationToken(verificationToken);
